@@ -14,8 +14,8 @@ var Game = (function (_super) {
         _this.objectPoint = new egret.Point(0, 0); //出发点
         _this.objectWH = 50;
         _this.touchPoint = new egret.Point(0, 0);
-        _this.guideLine = new egret.Shape(); //方向引导线
-        _this.maxLen = 500;
+        _this.guideLine = new egret.Shape(); //路径引导线
+        _this.maxLen = 150;
         _this.speedTime = 2;
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
@@ -58,21 +58,33 @@ var Game = (function (_super) {
     Game.prototype.touchMove = function (event) {
         //清除上次画的线
         this.guideLine.graphics.clear();
-        //计算x,y移动到的位置
+        //计算x,y移动到的坐标
         this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
         this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
-        console.log("x=" + this.moveToX + "y=" + this.moveToY);
-        // if((this.moveToX*this.moveToX + this.moveToY*this.moveToY) > this.maxLen*this.maxLen) {
-        // 	console.log("长度超出");
-        // }
+        //勾股定理计算斜边长度
+        var powX = Math.pow(this.moveToX - this.objectPoint.x, 2);
+        var powY = Math.pow(this.moveToY - this.objectPoint.y, 2);
+        var lineWidth = Math.sqrt(powX + powY);
+        //长度超过限制,计算最远的点坐标
+        if (lineWidth > this.maxLen) {
+            //实际直角三角形三条边长度
+            var moveX = event.localX - this.touchPoint.x;
+            var moveY = event.localY - this.touchPoint.y;
+            var bias = Math.sqrt(moveX * moveX + moveY * moveY);
+            //已知最长斜边,按比例计算另外两条边的长度
+            var newX = this.maxLen * moveX / bias;
+            var newY = this.maxLen * moveY / bias;
+            //计算最长距离的点坐标
+            this.moveToX = this.objectPoint.x + newX;
+            this.moveToY = this.objectPoint.y + newY;
+        }
         //设置贝塞尔曲线控制点
         var controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x) / 2;
         var controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y) / 2;
         //画贝塞尔曲线
         this.guideLine.graphics.lineStyle(5, 0x00ff00);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y); //起点
-        this.guideLine.graphics.curveTo(controlX, controlY - 15, this.moveToX, this.moveToY); //控制点,终点
-        // this.guideLine.graphics.lineTo(this.moveToX, this.moveToY);	//控制点,终点
+        this.guideLine.graphics.curveTo(controlX, controlY - 25, this.moveToX, this.moveToY); //控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
     };

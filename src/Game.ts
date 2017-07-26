@@ -61,26 +61,42 @@ class Game extends egret.DisplayObjectContainer {
 		this.touchPoint.y = event.localY;
 	}
 
-	private guideLine:egret.Shape = new egret.Shape();	//方向引导线
-	private moveToX: number;	//X轴将要移动到的位置
-	private moveToY: number;	//Y轴将要移动到的位置
-	private maxLen: number = 500;
+	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
+	private moveToX: number;	//X坐标将要移动到的位置
+	private moveToY: number;	//Y坐标将要移动到的位置
+	private maxLen: number = 150;
 
 	private touchMove(event: egret.TouchEvent) {
 	
 		//清除上次画的线
 		this.guideLine.graphics.clear();
 
-		//计算x,y移动到的位置
+		//计算x,y移动到的坐标
 		this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
 		this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
 
+		//勾股定理计算斜边长度
+		let powX = Math.pow(this.moveToX-this.objectPoint.x,2)
+		let powY = Math.pow(this.moveToY-this.objectPoint.y,2)
+		let lineWidth = Math.sqrt(powX+powY);
 
-		console.log("x=" + this.moveToX + "y=" + this.moveToY);
+		//长度超过限制,计算最远的点坐标
+		if(lineWidth > this.maxLen) {
 
-		// if((this.moveToX*this.moveToX + this.moveToY*this.moveToY) > this.maxLen*this.maxLen) {
-		// 	console.log("长度超出");
-		// }
+			//实际直角三角形三条边长度
+			let moveX = event.localX - this.touchPoint.x;
+			let moveY = event.localY - this.touchPoint.y;
+			let bias = Math.sqrt(moveX*moveX+moveY*moveY);
+			
+			//已知最长斜边,按比例计算另外两条边的长度
+			let newX = this.maxLen*moveX/bias;
+			let newY = this.maxLen*moveY/bias;
+
+			//计算最长距离的点坐标
+			this.moveToX = this.objectPoint.x + newX;
+			this.moveToY = this.objectPoint.y + newY;
+		}
+
 
 		//设置贝塞尔曲线控制点
 		let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
@@ -89,9 +105,7 @@ class Game extends egret.DisplayObjectContainer {
 		//画贝塞尔曲线
  		this.guideLine.graphics.lineStyle(5,0x00ff00);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
-		this.guideLine.graphics.curveTo(controlX, controlY-15, this.moveToX, this.moveToY);	//控制点,终点
-		// this.guideLine.graphics.lineTo(this.moveToX, this.moveToY);	//控制点,终点
-
+		this.guideLine.graphics.curveTo(controlX, controlY-25, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
 	}

@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json,testbg_png",
+			"keys": "bg_jpg,egret_icon_png,description_json,testbg_png,beibei_png",
 			"name": "preload"
 		}
 	],
@@ -25,6 +25,11 @@
 			"name": "testbg_png",
 			"type": "image",
 			"url": "test/testbg.png"
+		},
+		{
+			"name": "beibei_png",
+			"type": "image",
+			"url": "game/beibei.png"
 		}
 	]
 }

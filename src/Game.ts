@@ -16,7 +16,7 @@ class Game extends egret.DisplayObjectContainer {
 	private stageH: number;	//舞台高度
 
 	
-	private mainObject = this.createBitmapByName("egret_icon_png");
+	private mainObject = this.createBitmapByName("beibei_png");
 	private objectPoint = new egret.Point(0,0);	//出发点
 	private objectWH:number = 50;
 
@@ -38,7 +38,7 @@ class Game extends egret.DisplayObjectContainer {
 
 		//游戏对象
 		this.mainObject.x = 100;
-		this.mainObject.y = 200;
+		this.mainObject.y = 400;
 		this.mainObject.width = this.objectWH;
 		this.mainObject.height = this.objectWH;
 		this.addChild(this.mainObject);
@@ -65,6 +65,8 @@ class Game extends egret.DisplayObjectContainer {
 	private moveToX: number;	//X坐标将要移动到的位置
 	private moveToY: number;	//Y坐标将要移动到的位置
 	private maxLen: number = 150;
+	private lineLen:number;
+
 
 	private touchMove(event: egret.TouchEvent) {
 	
@@ -78,10 +80,11 @@ class Game extends egret.DisplayObjectContainer {
 		//勾股定理计算斜边长度
 		let powX = Math.pow(this.moveToX-this.objectPoint.x,2)
 		let powY = Math.pow(this.moveToY-this.objectPoint.y,2)
-		let lineWidth = Math.sqrt(powX+powY);
+		this.lineLen = Math.sqrt(powX+powY);
 
 		//长度超过限制,计算最远的点坐标
-		if(lineWidth > this.maxLen) {
+		if(this.lineLen > this.maxLen) {
+			this.lineLen = this.maxLen;
 
 			//实际直角三角形三条边长度
 			let moveX = event.localX - this.touchPoint.x;
@@ -92,11 +95,11 @@ class Game extends egret.DisplayObjectContainer {
 			let newX = this.maxLen*moveX/bias;
 			let newY = this.maxLen*moveY/bias;
 
+
 			//计算最长距离的点坐标
 			this.moveToX = this.objectPoint.x + newX;
 			this.moveToY = this.objectPoint.y + newY;
 		}
-
 
 		//设置贝塞尔曲线控制点
 		let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
@@ -105,25 +108,32 @@ class Game extends egret.DisplayObjectContainer {
 		//画贝塞尔曲线
  		this.guideLine.graphics.lineStyle(5,0x00ff00);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
-		this.guideLine.graphics.curveTo(controlX, controlY-25, this.moveToX, this.moveToY);	//控制点,终点
+		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
 	}
 
-	private speedX: number;	//左右移动的速度
-	private speedY: number;	//上下移动的速度
-	private speedTime:number = 2;
 
 	private touchEnd(event: egret.TouchEvent) {
 
 		this.guideLine.graphics.clear();
 		this.stage.removeEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
 
-		//对象沿曲线方向抛物线运动
-		this.speedX = this.moveToX/100;
-		this.speedY = this.moveToY/100;
 
-		egret.Tween.get(this.mainObject).to({x:666},1000*this.speedTime);
+		// console.log(this.lineLen);
+
+
+
+		//根据线的长度计算最高点
+		let highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*2;
+		let highY = this.objectPoint.y - (this.objectPoint.y - this.moveToY)*2 - this.objectWH;
+
+		console.log(this.objectPoint.y);
+		console.log(this.moveToY);
+		console.log(highY);
+
+		//移动到最高点
+		egret.Tween.get(this.mainObject).to({x:highX, y:highY},2000);
 
 	}
 }

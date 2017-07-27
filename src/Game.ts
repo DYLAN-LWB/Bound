@@ -50,13 +50,13 @@ class Game extends egret.DisplayObjectContainer {
 		
 		//舞台背景
 		let background = new egret.Sprite;
-        background.graphics.beginFill(0xd0efe9,1);
+        background.graphics.beginFill(0x528B8B,1);
         background.graphics.drawRect(0,0,this.stageW,this.stageH);
         background.graphics.endFill();
         this.addChild(background);
 
 		//添加台阶
-		for(var i = 0; i < 10; i++) {
+		for(var i = 0; i < 7; i++) {
 			let step = this.createBitmapByName("ladder_png");
 			step.y = this.objectBeginY + this.objectWH;
 			step.x = Math.random()*100 + 200*i + 100;
@@ -169,7 +169,7 @@ class Game extends egret.DisplayObjectContainer {
 		}
 
 		//缓动动画
-		egret.Tween.get(this).to({factor: 1}, 2000).call(function() {
+		egret.Tween.get(this).to({factor: 1}, 1000).call(function() {
 
 			//动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
 			if(this.hasHit == false) {
@@ -190,9 +190,9 @@ class Game extends egret.DisplayObjectContainer {
 		this.mainObject.x = (1 - value) * (1 - value) * this.objectPoint.x + 2 * value * (1 - value) * this.highX + value * value * (this.highX*2 - this.objectPoint.x);
 		this.mainObject.y = (1 - value) * (1 - value) * (this.objectPoint.y - this.objectWH) + 2 * value * (1 - value) * (this.highY-300) + value * value * (this.stageH- this.objectWH);
 
-		for(var i = 0; i < this.stepArray.length; i++) {
+		for(var index = 0; index < this.stepArray.length; index++) {
 
-			var step = this.stepArray[i];
+			var step = this.stepArray[index];
 			var isHit: boolean = step.hitTestPoint(this.mainObject.x+this.mainObject.width/2, this.mainObject.y+this.mainObject.height, true);
 			if(isHit) {
 				console.log("isHit");
@@ -204,7 +204,7 @@ class Game extends egret.DisplayObjectContainer {
 				this.hasHit = true;
 
 				//要移动的距离 = 跳到的台阶的中心点 - 初始x值
-				let moveLen = this.stepArray[i].x + this.stepArray[i].width/2 - this.startX;
+				let moveLen = this.stepArray[index].x + this.stepArray[index].width/2 - this.startX;
 
 				//遍历数组 改变x值
 				for(var j = 0; j < this.stepArray.length; j++ ) {
@@ -217,15 +217,26 @@ class Game extends egret.DisplayObjectContainer {
 
 
 				//删除0到i(脚下之前)的台阶 
-				for(var z = 0; z < i; z++ ) {
-					this.removeChild(this.stepArray[z]);
+				for(var del = 0; del < index; del++ ) {
+					this.removeChild(this.stepArray[del]);
 				}
-				this.stepArray.splice(0, i);
+				this.stepArray.splice(0, index);
+				
 
+				console.log(this.stepArray.length);
+				//拿到最后一个台阶的x值
+				let lastStep = this.stepArray[this.stepArray.length - 1];
+				//末尾添加台阶
+				for(var last = 0; last < index; last++ ) {
+					let step = this.createBitmapByName("ladder_png");
+					step.y = this.objectBeginY + this.objectWH;
+					step.x = Math.random()*100 + 200*last +lastStep.x - 50;
+					step.width = 100;
+					step.height = 20;
+					this.addChild(step);
 
-
-				//完全消失时, 改变数组顺序
-
+					this.stepArray.push(step);
+				}
 
 				//移动之后重新添加交互事件
 				this.addTouchEvent();

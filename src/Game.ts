@@ -12,23 +12,36 @@ class Game extends egret.DisplayObjectContainer {
         return result;
     }
 
+	//public
 	private stageW: number;	//舞台宽度
 	private stageH: number;	//舞台高度
 
 	private stepArray = [];	//阶梯数组
-	private currentIndex: number;	//当前位置
 
+	private startX:number = 200; //初始x值 (台阶中心点为准)
+
+	//object
 	private mainObject = this.createBitmapByName("beibei_png");	//弹跳对象
 	private objectWH:number = 50;	//对象宽高
 	private objectPoint = new egret.Point(0,0);	//对象出发点
 	private objectBeginY = 300;
 
+	//touch and line
 	private touchPoint = new egret.Point(0,0);	//开始触摸的点
 	private lineMaxW: number; //引导线最高长度
+	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
+	private moveToX: number;	//X坐标将要移动到的位置
+	private moveToY: number;	//Y坐标将要移动到的位置
+	private maxLen: number = 150;	//箭头的最大长度
+	private lineLen: number;		//箭头实际长度
 
+	//bessel
+	private highX: number;	//运动到最高点的x坐标
+	private highY: number;	//运动到最高点的y坐标
 
-	private startX:number = 200; //初始x值 (台阶中心点为准)
-	private hitX:number; //碰撞时的x值
+	//hit
+	private hasHit: boolean = false;	//如果未碰撞到,恢复对象位置
+
 
     private onAddToStage(event: egret.Event) {
 
@@ -57,10 +70,7 @@ class Game extends egret.DisplayObjectContainer {
 			this.stepArray.push(step);
 		}
 
-		this.currentIndex = 0;
-
-
-		//游戏对象 x值根据台阶来定
+		//游戏对象
 		this.mainObject.width = this.objectWH;
 		this.mainObject.height = this.objectWH;
 		this.mainObject.x = this.startX - this.mainObject.width/2;
@@ -92,13 +102,10 @@ class Game extends egret.DisplayObjectContainer {
 		//触摸时拿到触摸点的位置
 		this.touchPoint.x = event.localX;
 		this.touchPoint.y = event.localY;
-	}
 
-	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
-	private moveToX: number;	//X坐标将要移动到的位置
-	private moveToY: number;	//Y坐标将要移动到的位置
-	private maxLen: number = 150;	//箭头的最大长度
-	private lineLen: number;		//箭头实际长度
+		//重置
+		this.hasHit = false;
+	}
 
 	private touchMove(event: egret.TouchEvent) {
 	
@@ -137,19 +144,16 @@ class Game extends egret.DisplayObjectContainer {
 		let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2;
 
 		//画箭头
- 		this.guideLine.graphics.lineStyle(5,0xFF0000);
+ 		this.guideLine.graphics.lineStyle(5,0xFFFFFF);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
 		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
 	}
 
-	private highX: number;	//运动到最高点的x坐标
-	private highY: number;	//运动到最高点的y坐标
-	private hasHit: boolean = false;	//如果未碰撞到,恢复对象位置
-
 	private touchEnd(event: egret.TouchEvent) {
 
+		//清楚箭头
 		this.guideLine.graphics.clear();
 
 		//动画时移除交互事件
@@ -159,6 +163,7 @@ class Game extends egret.DisplayObjectContainer {
 		this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*3;
 		this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY)*3;
 
+		//控制点超出屏幕时容错
 		if(this.highY < 0) {
 			this.highY = 0;
 		}
@@ -168,11 +173,11 @@ class Game extends egret.DisplayObjectContainer {
 
 			//动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
 			if(this.hasHit == false) {
-				let firstStep = this.stepArray[this.currentIndex];
+				let firstStep = this.stepArray[0];
 				this.mainObject.x = firstStep.x + firstStep.width/2 - this.mainObject.width/2;
 				this.mainObject.y = this.objectBeginY;
 			}
-			//动画结束后重新添加交互事件
+			//动画结束后重新添加交互事件 (未发生碰撞)
 			this.addTouchEvent();
 		}, this);
 	}
@@ -190,20 +195,37 @@ class Game extends egret.DisplayObjectContainer {
 			var step = this.stepArray[i];
 			var isHit: boolean = step.hitTestPoint(this.mainObject.x+this.mainObject.width/2, this.mainObject.y+this.mainObject.height, true);
 			if(isHit) {
+				console.log("isHit");
+
 				//发生碰撞,移除缓动动画
 				egret.Tween.removeTweens(this);
 
-
-
-				console.log("isHit");
+				//不重置对象位置
 				this.hasHit = true;
 
-				//移动容器
-				// this.stepSprite1.x -= this.averageWidth;
+				//要移动的距离 = 跳到的台阶的中心点 - 初始x值
+				let moveLen = this.stepArray[i].x + this.stepArray[i].width/2 - this.startX;
+
+				//遍历数组 改变x值
+				for(var j = 0; j < this.stepArray.length; j++ ) {
+					var ste = this.stepArray[j];
+					egret.Tween.get(ste).to({x:ste.x - moveLen}, 300);
+				}
+
+				//改变对象x值
+				egret.Tween.get(this.mainObject).to({x:this.startX - this.mainObject.width/2}, 300);
+
+
+				//删除0到i(脚下之前)的台阶 
+				for(var z = 0; z < i; z++ ) {
+					this.removeChild(this.stepArray[z]);
+				}
+				this.stepArray.splice(0, i);
+
+
 
 				//完全消失时, 改变数组顺序
-				// this.currentIndex = 0;
-				// this.currentStepArray = this.stepArray.slice(this.currentIndex, this.currentIndex+5); 
+
 
 				//移动之后重新添加交互事件
 				this.addTouchEvent();

@@ -15,32 +15,60 @@ class Game extends egret.DisplayObjectContainer {
 	private stageW: number;	//舞台宽度
 	private stageH: number;	//舞台高度
 
-	
-	private mainObject = this.createBitmapByName("beibei_png");
-	private objectPoint = new egret.Point(0,0);	//出发点
-	private objectWH:number = 50;
 
-	private touchPoint = new egret.Point(0,0);
+
+
+	private stepSprite1: egret.Sprite;
+	private stepSprite2: egret.Sprite;
+
+	private averageWidth: number;
+	private stepArray = [];	//阶梯数组
+	private currentIndex: number;	//当前位置
+
+	private mainObject = this.createBitmapByName("beibei_png");	//弹跳对象
+	private objectWH:number = 50;	//对象宽高
+	private objectPoint = new egret.Point(0,0);	//对象出发点
+	private objectBeginY = 300;
+
+	private touchPoint = new egret.Point(0,0);	//开始触摸的点
 	private lineMaxW: number; //引导线最高长度
 
     private onAddToStage(event: egret.Event) {
 
 		this.stageW = this.stage.stageWidth;
 		this.stageH = this.stage.stageHeight;
+		this.averageWidth = this.stageW/5; 	//每屏5个台阶
 		
 		//舞台背景图片
-		let stageBackground = this.createBitmapByName("testbg_png");
-		stageBackground.x = 0;
-		stageBackground.y = 0;
-		stageBackground.width = this.stageW;
-		stageBackground.height = this.stageH;
-		this.addChild(stageBackground);
+		// let stageBackground = this.createBitmapByName("testbg_png");
+		// stageBackground.x = 0;
+		// stageBackground.y = 0;
+		// stageBackground.width = this.stageW;
+		// stageBackground.height = this.stageH;
+		// this.addChild(stageBackground);
 
-		//游戏对象
-		this.mainObject.x = 100;
-		this.mainObject.y = 400;
+		//创建两个容器,来回切换
+        this.stepSprite1 = new egret.Sprite;
+        this.stepSprite1.graphics.beginFill(0x00C5CD,1);
+        this.stepSprite1.graphics.drawRect(0,0,this.stageW,this.stageH);
+        this.stepSprite1.graphics.endFill();
+        this.addChild(this.stepSprite1);
+
+        this.stepSprite2 = new egret.Sprite;
+        this.stepSprite2.graphics.beginFill(0xd0efe9,1);
+        this.stepSprite2.graphics.drawRect(this.stageW,0,this.stageW,this.stageH);
+        this.stepSprite2.graphics.endFill();
+        this.addChild(this.stepSprite2);
+
+		this.addSteps(this.stepSprite1,0);
+		this.addSteps(this.stepSprite2,1);
+
+		//游戏对象 x值根据台阶来定
+		let firstStep = this.stepArray[this.currentIndex];
 		this.mainObject.width = this.objectWH;
 		this.mainObject.height = this.objectWH;
+		this.mainObject.x = firstStep.x + firstStep.width/2 - this.mainObject.width/2;
+		this.mainObject.y = this.objectBeginY;
 		this.addChild(this.mainObject);
 
 		//设置弹跳对象初始位置
@@ -50,13 +78,30 @@ class Game extends egret.DisplayObjectContainer {
 		//添加touch事件
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
+		this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
     }
+
+	//添加台阶
+	private addSteps(sprite: egret.Sprite, index: number) {
+
+		for(var i = 0; i < 5; i++) {
+			var step = this.createBitmapByName("ladder_png");
+			step.y = this.objectBeginY + this.objectWH;
+			step.x = this.stageW*index + this.averageWidth*i + Math.random()*100 + 50;
+            step.width = 100;
+            step.height = 20;
+            sprite.addChild(step);
+
+			if(i == 0) {
+				step.x = 120 + this.stageW*index;
+			}
+			this.stepArray.push(step);
+			this.currentIndex = 0;
+		}
+	}
 
 	private touchBegin(event: egret.TouchEvent) {
 
-		this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
-		this.mainObject.x = 100;
-		this.mainObject.y = 400;
 		//触摸时拿到触摸点的位置
 		this.touchPoint.x = event.localX;
 		this.touchPoint.y = event.localY;
@@ -65,19 +110,17 @@ class Game extends egret.DisplayObjectContainer {
 	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
 	private moveToX: number;	//X坐标将要移动到的位置
 	private moveToY: number;	//Y坐标将要移动到的位置
-	private maxLen: number = 150;
-	private lineLen:number;
-
+	private maxLen: number = 150;	//箭头的最大长度
+	private lineLen: number;		//箭头实际长度
 
 	private touchMove(event: egret.TouchEvent) {
 	
-		//清除上次画的线
+		//清除上次画的箭头
 		this.guideLine.graphics.clear();
 
-		//计算x,y移动到的坐标
+		//计算触摸点移动到的坐标
 		this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
 		this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
-
 
 		//勾股定理计算斜边长度
 		let powX = Math.pow(this.moveToX-this.objectPoint.x,2)
@@ -97,74 +140,85 @@ class Game extends egret.DisplayObjectContainer {
 			let newX = this.maxLen*moveX/bias;
 			let newY = this.maxLen*moveY/bias;
 
-
 			//计算最长距离的点坐标
 			this.moveToX = this.objectPoint.x + newX;
 			this.moveToY = this.objectPoint.y + newY;
 		}
 
-		//设置贝塞尔曲线控制点
+		//设置箭头的贝塞尔曲线控制点
 		let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
 		let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2;
 
-		//画贝塞尔曲线
- 		this.guideLine.graphics.lineStyle(5,0x00ff00);
+		//画箭头
+ 		this.guideLine.graphics.lineStyle(5,0xFF0000);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
 		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
 	}
 
-	private highX: number;
-	private highY: number;
-	private highCX: number;
-	private highCY: number;
+	private highX: number;	//运动到最高点的x坐标
+	private highY: number;	//运动到最高点的y坐标
+	private hasHit: boolean = false;	//如果未碰撞到,恢复对象位置
 
 	private touchEnd(event: egret.TouchEvent) {
 
 		this.guideLine.graphics.clear();
-		this.stage.removeEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
 
 		//根据线的长度计算最高点 2倍
 		this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*3;
 		this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY)*3;
-		// this.highCX = this.objectPoint.x + (this.highX - this.objectPoint.x)/2;
-		// this.highCY = this.objectPoint.y - this.objectWH + (this.highY - this.objectPoint.y)/2;
 
+		if(this.highY < 0) {
+			this.highY = 0;
+		}
 
-
-		// var line1 = new egret.Shape()
- 		// line1.graphics.lineStyle(5,0x87CEFA);
-        // line1.graphics.moveTo(this.objectPoint.x, this.objectPoint.y - this.objectWH);	//起点
-		// line1.graphics.lineTo(this.highX, this.highY);
-		// line1.graphics.lineTo(this.highX*2 - this.objectPoint.x, this.stageH);
-        // line1.graphics.endFill();
-        // this.addChild(line1);
-
-
-		// var line = new egret.Shape()
- 		// line.graphics.lineStyle(1,0x4B0082);
-        // line.graphics.moveTo(this.objectPoint.x, this.objectPoint.y - this.objectWH);	//起点
-		// line.graphics.curveTo(this.highX, this.highY-300, this.highX*2 - this.objectPoint.x, this.stageH);	//控制点,终点
-        // line.graphics.endFill();
-        // this.addChild(line);
-
-		// //移动到最高点
-		// egret.Tween.get(this.mainObject)
-		// .to({x:this.highX, y:this.highY},1500)
-		// .to({x:this.highX*2 - this.objectPoint.x, y:this.stageH},1500);
-
-
-		egret.Tween.get(this).to({factor: 1}, 2000);
+		//缓动动画
+		egret.Tween.get(this).to({factor: 1}, 2000).call(function() {
+			console.log("动画结束");
+			//动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
+			if(this.hasHit == false) {
+				let firstStep = this.stepArray[this.currentIndex];
+				this.mainObject.x = firstStep.x + firstStep.width/2 - this.mainObject.width/2;
+				this.mainObject.y = this.objectBeginY;
+			}
+		}, this);
 	}
 
 	public get factor():number {
         return 0;
     }
- 
+
+
     public set factor(value:number) {
-		console.log("set factor");
 		this.mainObject.x = (1 - value) * (1 - value) * this.objectPoint.x + 2 * value * (1 - value) * this.highX + value * value * (this.highX*2 - this.objectPoint.x);
-		this.mainObject.y = (1 - value) * (1 - value) * (this.objectPoint.y - this.objectWH) + 2 * value * (1 - value) * (this.highY-300) + value * value * this.stageH;
-    }
+		this.mainObject.y = (1 - value) * (1 - value) * (this.objectPoint.y - this.objectWH) + 2 * value * (1 - value) * (this.highY-300) + value * value * (this.stageH- this.objectWH);
+
+		for(var i = 0; i < this.stepArray.length; i++) {
+
+			var step = this.stepArray[i];
+			var isHit: boolean = step.hitTestPoint(this.mainObject.x+this.mainObject.width/2, this.mainObject.y+this.mainObject.height, true);
+			if(isHit) {
+				console.log("isHit");
+				this.hasHit = true;
+				//移动容器
+
+				// this.currentIndex = 0;
+				// this.currentStepArray = this.stepArray.slice(this.currentIndex, this.currentIndex+5); 
+			}
+		}
+
+
+	}
+
+
+
+
+
+
+
 }
+
+
+
+

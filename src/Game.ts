@@ -55,7 +55,8 @@ class Game extends egret.DisplayObjectContainer {
 	private touchBegin(event: egret.TouchEvent) {
 
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
-
+		this.mainObject.x = 100;
+		this.mainObject.y = 400;
 		//触摸时拿到触摸点的位置
 		this.touchPoint.x = event.localX;
 		this.touchPoint.y = event.localY;
@@ -76,6 +77,7 @@ class Game extends egret.DisplayObjectContainer {
 		//计算x,y移动到的坐标
 		this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
 		this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
+
 
 		//勾股定理计算斜边长度
 		let powX = Math.pow(this.moveToX-this.objectPoint.x,2)
@@ -113,27 +115,56 @@ class Game extends egret.DisplayObjectContainer {
         this.addChild(this.guideLine);
 	}
 
+	private highX: number;
+	private highY: number;
+	private highCX: number;
+	private highCY: number;
 
 	private touchEnd(event: egret.TouchEvent) {
 
 		this.guideLine.graphics.clear();
 		this.stage.removeEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
 
+		//根据线的长度计算最高点 2倍
+		this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*3;
+		this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY)*3;
+		// this.highCX = this.objectPoint.x + (this.highX - this.objectPoint.x)/2;
+		// this.highCY = this.objectPoint.y - this.objectWH + (this.highY - this.objectPoint.y)/2;
 
-		// console.log(this.lineLen);
 
 
+		// var line1 = new egret.Shape()
+ 		// line1.graphics.lineStyle(5,0x87CEFA);
+        // line1.graphics.moveTo(this.objectPoint.x, this.objectPoint.y - this.objectWH);	//起点
+		// line1.graphics.lineTo(this.highX, this.highY);
+		// line1.graphics.lineTo(this.highX*2 - this.objectPoint.x, this.stageH);
+        // line1.graphics.endFill();
+        // this.addChild(line1);
 
-		//根据线的长度计算最高点
-		let highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*2;
-		let highY = this.objectPoint.y - (this.objectPoint.y - this.moveToY)*2 - this.objectWH;
 
-		console.log(this.objectPoint.y);
-		console.log(this.moveToY);
-		console.log(highY);
+		// var line = new egret.Shape()
+ 		// line.graphics.lineStyle(1,0x4B0082);
+        // line.graphics.moveTo(this.objectPoint.x, this.objectPoint.y - this.objectWH);	//起点
+		// line.graphics.curveTo(this.highX, this.highY-300, this.highX*2 - this.objectPoint.x, this.stageH);	//控制点,终点
+        // line.graphics.endFill();
+        // this.addChild(line);
 
-		//移动到最高点
-		egret.Tween.get(this.mainObject).to({x:highX, y:highY},2000);
+		// //移动到最高点
+		// egret.Tween.get(this.mainObject)
+		// .to({x:this.highX, y:this.highY},1500)
+		// .to({x:this.highX*2 - this.objectPoint.x, y:this.stageH},1500);
 
+
+		egret.Tween.get(this).to({factor: 1}, 2000);
 	}
+
+	public get factor():number {
+        return 0;
+    }
+ 
+    public set factor(value:number) {
+		console.log("set factor");
+		this.mainObject.x = (1 - value) * (1 - value) * this.objectPoint.x + 2 * value * (1 - value) * this.highX + value * value * (this.highX*2 - this.objectPoint.x);
+		this.mainObject.y = (1 - value) * (1 - value) * (this.objectPoint.y - this.objectWH) + 2 * value * (1 - value) * (this.highY-300) + value * value * this.stageH;
+    }
 }

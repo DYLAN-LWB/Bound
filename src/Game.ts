@@ -15,13 +15,6 @@ class Game extends egret.DisplayObjectContainer {
 	private stageW: number;	//舞台宽度
 	private stageH: number;	//舞台高度
 
-
-
-
-	private stepSprite1: egret.Sprite;
-	private stepSprite2: egret.Sprite;
-
-	private averageWidth: number;
 	private stepArray = [];	//阶梯数组
 	private currentIndex: number;	//当前位置
 
@@ -33,41 +26,44 @@ class Game extends egret.DisplayObjectContainer {
 	private touchPoint = new egret.Point(0,0);	//开始触摸的点
 	private lineMaxW: number; //引导线最高长度
 
+
+	private startX:number = 200; //初始x值 (台阶中心点为准)
+	private hitX:number; //碰撞时的x值
+
     private onAddToStage(event: egret.Event) {
 
 		this.stageW = this.stage.stageWidth;
 		this.stageH = this.stage.stageHeight;
-		this.averageWidth = this.stageW/5; 	//每屏5个台阶
 		
-		//舞台背景图片
-		// let stageBackground = this.createBitmapByName("testbg_png");
-		// stageBackground.x = 0;
-		// stageBackground.y = 0;
-		// stageBackground.width = this.stageW;
-		// stageBackground.height = this.stageH;
-		// this.addChild(stageBackground);
+		//舞台背景
+		let background = new egret.Sprite;
+        background.graphics.beginFill(0xd0efe9,1);
+        background.graphics.drawRect(0,0,this.stageW,this.stageH);
+        background.graphics.endFill();
+        this.addChild(background);
 
-		//创建两个容器,来回切换
-        this.stepSprite1 = new egret.Sprite;
-        this.stepSprite1.graphics.beginFill(0x00C5CD,1);
-        this.stepSprite1.graphics.drawRect(0,0,this.stageW,this.stageH);
-        this.stepSprite1.graphics.endFill();
-        this.addChild(this.stepSprite1);
+		//添加台阶
+		for(var i = 0; i < 10; i++) {
+			let step = this.createBitmapByName("ladder_png");
+			step.y = this.objectBeginY + this.objectWH;
+			step.x = Math.random()*100 + 200*i + 100;
+            step.width = 100;
+            step.height = 20;
+            this.addChild(step);
 
-        this.stepSprite2 = new egret.Sprite;
-        this.stepSprite2.graphics.beginFill(0xd0efe9,1);
-        this.stepSprite2.graphics.drawRect(this.stageW,0,this.stageW,this.stageH);
-        this.stepSprite2.graphics.endFill();
-        this.addChild(this.stepSprite2);
+			if(i == 0) {
+				step.x = this.startX - step.width/2;
+			}
+			this.stepArray.push(step);
+		}
 
-		this.addSteps(this.stepSprite1,0);
-		this.addSteps(this.stepSprite2,1);
+		this.currentIndex = 0;
+
 
 		//游戏对象 x值根据台阶来定
-		let firstStep = this.stepArray[this.currentIndex];
 		this.mainObject.width = this.objectWH;
 		this.mainObject.height = this.objectWH;
-		this.mainObject.x = firstStep.x + firstStep.width/2 - this.mainObject.width/2;
+		this.mainObject.x = this.startX - this.mainObject.width/2;
 		this.mainObject.y = this.objectBeginY;
 		this.addChild(this.mainObject);
 
@@ -76,28 +72,19 @@ class Game extends egret.DisplayObjectContainer {
 		this.objectPoint.y = this.mainObject.y + this.objectWH;
 
 		//添加touch事件
+		this.addTouchEvent();
+    }
+
+	private addTouchEvent() {
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
 		this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
-    }
+	}
 
-	//添加台阶
-	private addSteps(sprite: egret.Sprite, index: number) {
-
-		for(var i = 0; i < 5; i++) {
-			var step = this.createBitmapByName("ladder_png");
-			step.y = this.objectBeginY + this.objectWH;
-			step.x = this.stageW*index + this.averageWidth*i + Math.random()*100 + 50;
-            step.width = 100;
-            step.height = 20;
-            sprite.addChild(step);
-
-			if(i == 0) {
-				step.x = 120 + this.stageW*index;
-			}
-			this.stepArray.push(step);
-			this.currentIndex = 0;
-		}
+	private removeTouchEvent() {
+		this.stage.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
+		this.stage.removeEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
+		this.stage.removeEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
 	}
 
 	private touchBegin(event: egret.TouchEvent) {
@@ -165,6 +152,9 @@ class Game extends egret.DisplayObjectContainer {
 
 		this.guideLine.graphics.clear();
 
+		//动画时移除交互事件
+		this.removeTouchEvent();
+
 		//根据线的长度计算最高点 2倍
 		this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*3;
 		this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY)*3;
@@ -175,20 +165,21 @@ class Game extends egret.DisplayObjectContainer {
 
 		//缓动动画
 		egret.Tween.get(this).to({factor: 1}, 2000).call(function() {
-			console.log("动画结束");
+
 			//动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
 			if(this.hasHit == false) {
 				let firstStep = this.stepArray[this.currentIndex];
 				this.mainObject.x = firstStep.x + firstStep.width/2 - this.mainObject.width/2;
 				this.mainObject.y = this.objectBeginY;
 			}
+			//动画结束后重新添加交互事件
+			this.addTouchEvent();
 		}, this);
 	}
 
 	public get factor():number {
         return 0;
     }
-
 
     public set factor(value:number) {
 		this.mainObject.x = (1 - value) * (1 - value) * this.objectPoint.x + 2 * value * (1 - value) * this.highX + value * value * (this.highX*2 - this.objectPoint.x);
@@ -199,16 +190,25 @@ class Game extends egret.DisplayObjectContainer {
 			var step = this.stepArray[i];
 			var isHit: boolean = step.hitTestPoint(this.mainObject.x+this.mainObject.width/2, this.mainObject.y+this.mainObject.height, true);
 			if(isHit) {
+				//发生碰撞,移除缓动动画
+				egret.Tween.removeTweens(this);
+
+
+
 				console.log("isHit");
 				this.hasHit = true;
-				//移动容器
 
+				//移动容器
+				// this.stepSprite1.x -= this.averageWidth;
+
+				//完全消失时, 改变数组顺序
 				// this.currentIndex = 0;
 				// this.currentStepArray = this.stepArray.slice(this.currentIndex, this.currentIndex+5); 
+
+				//移动之后重新添加交互事件
+				this.addTouchEvent();
 			}
 		}
-
-
 	}
 
 

@@ -22,9 +22,9 @@ class Game extends egret.DisplayObjectContainer {
 
 	//object
 	private mainObject = this.createBitmapByName("beibei_png");	//弹跳对象
-	private objectWH:number = 50;	//对象宽高
+	private objectWH:number = 80;	//对象宽高
 	private objectPoint = new egret.Point(0,0);	//对象出发点
-	private objectBeginY = 300;
+	private objectBeginY = 350;
 
 	//touch and line
 	private touchPoint = new egret.Point(0,0);	//开始触摸的点
@@ -50,7 +50,7 @@ class Game extends egret.DisplayObjectContainer {
 		
 		//舞台背景
 		let background = new egret.Sprite;
-        background.graphics.beginFill(0x528B8B,1);
+        background.graphics.beginFill(0x7AC5CD,1);
         background.graphics.drawRect(0,0,this.stageW,this.stageH);
         background.graphics.endFill();
         this.addChild(background);
@@ -59,9 +59,9 @@ class Game extends egret.DisplayObjectContainer {
 		for(var i = 0; i < 7; i++) {
 			let step = this.createBitmapByName("ladder_png");
 			step.y = this.objectBeginY + this.objectWH;
-			step.x = Math.random()*100 + 200*i + 100;
-            step.width = 100;
-            step.height = 20;
+			step.x = Math.random()*100 + 200*i + 120;
+            step.width = 120;
+            step.height = 25;
             this.addChild(step);
 
 			if(i == 0) {
@@ -112,6 +112,13 @@ class Game extends egret.DisplayObjectContainer {
 		//清除上次画的箭头
 		this.guideLine.graphics.clear();
 
+
+		//控制点超出屏幕时容错
+		if(event.localY < 0) {
+			this.moveToY = 0;
+			console.log("超出屏幕");
+		}
+
 		//计算触摸点移动到的坐标
 		this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
 		this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
@@ -139,6 +146,15 @@ class Game extends egret.DisplayObjectContainer {
 			this.moveToY = this.objectPoint.y + newY;
 		}
 
+
+		if(this.moveToX < this.objectPoint.x) {
+			this.moveToX = this.objectPoint.x;
+		}
+
+		if(this.moveToY > this.objectPoint.y) {
+			this.moveToY = this.objectPoint.y;
+		}
+
 		//设置箭头的贝塞尔曲线控制点
 		let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
 		let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2;
@@ -149,6 +165,8 @@ class Game extends egret.DisplayObjectContainer {
 		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
+
+
 	}
 
 	private touchEnd(event: egret.TouchEvent) {
@@ -163,13 +181,8 @@ class Game extends egret.DisplayObjectContainer {
 		this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)*3;
 		this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY)*3;
 
-		//控制点超出屏幕时容错
-		if(this.highY < 0) {
-			this.highY = 0;
-		}
-
 		//缓动动画
-		egret.Tween.get(this).to({factor: 1}, 1000).call(function() {
+		egret.Tween.get(this).to({factor: 1}, 1500).call(function() {
 
 			//动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
 			if(this.hasHit == false) {
@@ -196,6 +209,7 @@ class Game extends egret.DisplayObjectContainer {
 			var isHit: boolean = step.hitTestPoint(this.mainObject.x+this.mainObject.width/2, this.mainObject.y+this.mainObject.height, true);
 			if(isHit) {
 				console.log("isHit");
+				this.mainObject.y = this.objectBeginY;
 
 				//发生碰撞,移除缓动动画
 				egret.Tween.removeTweens(this);
@@ -220,6 +234,7 @@ class Game extends egret.DisplayObjectContainer {
 				for(var del = 0; del < index; del++ ) {
 					this.removeChild(this.stepArray[del]);
 				}
+				//删除跳跃过的数据
 				this.stepArray.splice(0, index);
 				
 
@@ -230,11 +245,12 @@ class Game extends egret.DisplayObjectContainer {
 				for(var last = 0; last < index; last++ ) {
 					let step = this.createBitmapByName("ladder_png");
 					step.y = this.objectBeginY + this.objectWH;
-					step.x = Math.random()*100 + 200*last +lastStep.x - 50;
-					step.width = 100;
-					step.height = 20;
+					step.x = Math.random()*100 + 200*last +lastStep.x - 60;
+					step.width = 120;
+					step.height = 25;
 					this.addChild(step);
 
+					//添加新增的台阶
 					this.stepArray.push(step);
 				}
 

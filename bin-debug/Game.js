@@ -14,9 +14,9 @@ var Game = (function (_super) {
         _this.startX = 200; //初始x值 (台阶中心点为准)
         //object
         _this.mainObject = _this.createBitmapByName("beibei_png"); //弹跳对象
-        _this.objectWH = 50; //对象宽高
+        _this.objectWH = 80; //对象宽高
         _this.objectPoint = new egret.Point(0, 0); //对象出发点
-        _this.objectBeginY = 300;
+        _this.objectBeginY = 350;
         //touch and line
         _this.touchPoint = new egret.Point(0, 0); //开始触摸的点
         _this.guideLine = new egret.Shape(); //路径引导线
@@ -37,7 +37,7 @@ var Game = (function (_super) {
         this.stageH = this.stage.stageHeight;
         //舞台背景
         var background = new egret.Sprite;
-        background.graphics.beginFill(0x528B8B, 1);
+        background.graphics.beginFill(0x7AC5CD, 1);
         background.graphics.drawRect(0, 0, this.stageW, this.stageH);
         background.graphics.endFill();
         this.addChild(background);
@@ -45,9 +45,9 @@ var Game = (function (_super) {
         for (var i = 0; i < 7; i++) {
             var step = this.createBitmapByName("ladder_png");
             step.y = this.objectBeginY + this.objectWH;
-            step.x = Math.random() * 100 + 200 * i + 100;
-            step.width = 100;
-            step.height = 20;
+            step.x = Math.random() * 100 + 200 * i + 120;
+            step.width = 120;
+            step.height = 25;
             this.addChild(step);
             if (i == 0) {
                 step.x = this.startX - step.width / 2;
@@ -86,6 +86,11 @@ var Game = (function (_super) {
     Game.prototype.touchMove = function (event) {
         //清除上次画的箭头
         this.guideLine.graphics.clear();
+        //控制点超出屏幕时容错
+        if (event.localY < 0) {
+            this.moveToY = 0;
+            console.log("超出屏幕");
+        }
         //计算触摸点移动到的坐标
         this.moveToX = this.objectPoint.x + (event.localX - this.touchPoint.x);
         this.moveToY = this.objectPoint.y + (event.localY - this.touchPoint.y);
@@ -107,6 +112,12 @@ var Game = (function (_super) {
             this.moveToX = this.objectPoint.x + newX;
             this.moveToY = this.objectPoint.y + newY;
         }
+        if (this.moveToX < this.objectPoint.x) {
+            this.moveToX = this.objectPoint.x;
+        }
+        if (this.moveToY > this.objectPoint.y) {
+            this.moveToY = this.objectPoint.y;
+        }
         //设置箭头的贝塞尔曲线控制点
         var controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x) / 2;
         var controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y) / 2;
@@ -125,12 +136,8 @@ var Game = (function (_super) {
         //根据线的长度计算最高点 2倍
         this.highX = this.objectPoint.x + (this.moveToX - this.objectPoint.x) * 3;
         this.highY = this.objectPoint.y - this.objectWH - (this.objectPoint.y - this.moveToY) * 3;
-        //控制点超出屏幕时容错
-        if (this.highY < 0) {
-            this.highY = 0;
-        }
         //缓动动画
-        egret.Tween.get(this).to({ factor: 1 }, 1000).call(function () {
+        egret.Tween.get(this).to({ factor: 1 }, 1500).call(function () {
             //动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
             if (this.hasHit == false) {
                 var firstStep = this.stepArray[0];
@@ -153,6 +160,7 @@ var Game = (function (_super) {
                 var isHit = step.hitTestPoint(this.mainObject.x + this.mainObject.width / 2, this.mainObject.y + this.mainObject.height, true);
                 if (isHit) {
                     console.log("isHit");
+                    this.mainObject.y = this.objectBeginY;
                     //发生碰撞,移除缓动动画
                     egret.Tween.removeTweens(this);
                     //不重置对象位置
@@ -170,6 +178,7 @@ var Game = (function (_super) {
                     for (var del = 0; del < index; del++) {
                         this.removeChild(this.stepArray[del]);
                     }
+                    //删除跳跃过的数据
                     this.stepArray.splice(0, index);
                     console.log(this.stepArray.length);
                     //拿到最后一个台阶的x值
@@ -178,10 +187,11 @@ var Game = (function (_super) {
                     for (var last = 0; last < index; last++) {
                         var step_1 = this.createBitmapByName("ladder_png");
                         step_1.y = this.objectBeginY + this.objectWH;
-                        step_1.x = Math.random() * 100 + 200 * last + lastStep.x - 50;
-                        step_1.width = 100;
-                        step_1.height = 20;
+                        step_1.x = Math.random() * 100 + 200 * last + lastStep.x - 60;
+                        step_1.width = 120;
+                        step_1.height = 25;
                         this.addChild(step_1);
+                        //添加新增的台阶
                         this.stepArray.push(step_1);
                     }
                     //移动之后重新添加交互事件

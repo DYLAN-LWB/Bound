@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json,testbg_png,beibei_png,ladder_png,test02_png",
+			"keys": "bg_jpg,egret_icon_png,description_json,beibei_png,ladder_png,yun01_png,yun02_png,yun03_png,yun04_png",
 			"name": "preload"
 		}
 	],
@@ -22,11 +22,6 @@
 			"url": "config/description.json"
 		},
 		{
-			"name": "testbg_png",
-			"type": "image",
-			"url": "test/testbg.png"
-		},
-		{
 			"name": "beibei_png",
 			"type": "image",
 			"url": "game/beibei.png"
@@ -37,9 +32,24 @@
 			"url": "test/ladder.png"
 		},
 		{
-			"name": "test02_png",
+			"name": "yun01_png",
 			"type": "image",
-			"url": "test/test02.png"
+			"url": "test/yun01.png"
+		},
+		{
+			"name": "yun02_png",
+			"type": "image",
+			"url": "test/yun02.png"
+		},
+		{
+			"name": "yun03_png",
+			"type": "image",
+			"url": "test/yun03.png"
+		},
+		{
+			"name": "yun04_png",
+			"type": "image",
+			"url": "test/yun04.png"
 		}
 	]
 }

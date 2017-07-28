@@ -10,10 +10,10 @@ var Game = (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
+        _this.totalStep = 7;
         _this.stepArray = []; //阶梯数组
         _this.startX = 200; //初始x值 (台阶中心点为准)
         _this.metersCount = 0; //走的总米数
-        _this.totalStep = 7;
         //object
         _this.mainObject = _this.createBitmapByName("beibei_png"); //弹跳对象
         _this.objectWH = 80; //对象宽高
@@ -68,6 +68,16 @@ var Game = (function (_super) {
         this.objectPoint.y = this.mainObject.y + this.objectWH;
         //添加touch事件
         this.addTouchEvent();
+        this.metersLabel = new egret.TextField();
+        this.metersLabel.x = 0;
+        this.metersLabel.y = 20;
+        this.metersLabel.width = this.stageW;
+        this.metersLabel.height = 55;
+        this.metersLabel.textColor = 0xFF0000;
+        this.metersLabel.textAlign = egret.HorizontalAlign.CENTER;
+        this.metersLabel.size = 30;
+        this.metersLabel.text = "您已经走了" + this.metersCount + "米";
+        this.addChild(this.metersLabel);
     };
     Game.prototype.addTouchEvent = function () {
         this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
@@ -181,7 +191,8 @@ var Game = (function (_super) {
                 // 	moveLen = 2000;
                 // 	index = 6;
                 // }
-                console.log(Math.round(moveLen / 100) + "米");
+                this.metersCount += Math.round(moveLen / 100);
+                this.metersLabel.text = "您已经走了" + this.metersCount + "米";
                 //遍历数组 改变x值
                 for (var j = 0; j < this.stepArray.length; j++) {
                     var ste = this.stepArray[j];
@@ -204,7 +215,6 @@ var Game = (function (_super) {
         }
     };
     Game.prototype.testTimeOut = function () {
-        console.log("testTimeOut");
         //拿到最后一个台阶的x值
         var lastStep = this.stepArray[this.stepArray.length - 1];
         //末尾添加台阶index

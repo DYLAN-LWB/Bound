@@ -15,13 +15,14 @@ class Game extends egret.DisplayObjectContainer {
 	//public
 	private stageW: number;	//舞台宽度
 	private stageH: number;	//舞台高度
-
+	private totalStep:number = 7;
 	private stepArray = [];	//阶梯数组
 
 	private startX:number = 200; //初始x值 (台阶中心点为准)
 
 	private metersCount:number = 0;	//走的总米数
-	private totalStep:number = 7;
+	private metersLabel: egret.TextField;
+
 
 	//object
 	private mainObject = this.createBitmapByName("beibei_png");	//弹跳对象
@@ -89,6 +90,17 @@ class Game extends egret.DisplayObjectContainer {
 
 		//添加touch事件
 		this.addTouchEvent();
+
+		this.metersLabel = new egret.TextField();
+		this.metersLabel.x = 0;
+		this.metersLabel.y = 20;
+		this.metersLabel.width = this.stageW;
+		this.metersLabel.height = 55;
+        this.metersLabel.textColor = 0xFF0000;
+		this.metersLabel.textAlign =  egret.HorizontalAlign.CENTER;
+        this.metersLabel.size = 30;
+        this.metersLabel.text = "您已经走了" + this.metersCount + "米";
+        this.addChild(this.metersLabel);
     }
 
 	private addTouchEvent() {
@@ -212,6 +224,7 @@ class Game extends egret.DisplayObjectContainer {
 
 		this.observeHit(false);
 	}
+
 	private newCount:number;
 	private observeHit(feed:boolean) {
 
@@ -237,7 +250,10 @@ class Game extends egret.DisplayObjectContainer {
 				// 	moveLen = 2000;
 				// 	index = 6;
 				// }
-				console.log(Math.round(moveLen/100)+ "米");
+				this.metersCount += Math.round(moveLen/100);
+
+				this.metersLabel.text = "您已经走了" + this.metersCount + "米";
+
 				//遍历数组 改变x值
 				for(var j = 0; j < this.stepArray.length; j++ ) {
 					var ste = this.stepArray[j];
@@ -255,20 +271,17 @@ class Game extends egret.DisplayObjectContainer {
 				this.stepArray.splice(0, index);
 
 				this.newCount = index;
+
 				//台阶动画结束后再执行
 				var timer: egret.Timer = new egret.Timer(350, 1);
 				timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.testTimeOut, this);
 				timer.start();
-
-
 			}
 		}	
 	}
 
 	private testTimeOut(){
-		console.log("testTimeOut");
 		//拿到最后一个台阶的x值
-
 		let lastStep = this.stepArray[this.stepArray.length - 1];
 
 		//末尾添加台阶index

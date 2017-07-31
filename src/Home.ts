@@ -206,7 +206,7 @@ class Home extends egret.DisplayObjectContainer {
             var strs = str.split("&");
             console.log(strs);
             for (var i = 0; i < strs.length; i++) {
-                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);
+                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);//decodeURI
             }
         }
         return theRequest;

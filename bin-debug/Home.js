@@ -42,7 +42,7 @@ var Home = (function (_super) {
         //获取用户剩余挑战次数
         this.getCanPalyNumber(this._vuid, this._key);
         //test
-        this._isfrom = 0;
+        this._isfrom = "0";
         //微信=0 app=1
         if (parseInt(this._isfrom) == 0) {
             var introduce = new egret.TextField();
@@ -186,7 +186,7 @@ var Home = (function (_super) {
             var strs = str.split("&");
             console.log(strs);
             for (var i = 0; i < strs.length; i++) {
-                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);
+                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]); //decodeURI
             }
         }
         return theRequest;

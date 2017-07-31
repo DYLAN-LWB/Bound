@@ -35,8 +35,7 @@ class Game extends egret.DisplayObjectContainer {
 
 	//touch and line
 	private touchPoint = new egret.Point(0,0);	//开始触摸的点
-	private lineMaxW: number; //引导线最高长度
-	// private guideLine:egret.Shape = new egret.Shape();	//路径引导线
+	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
 	private moveToX: number;	//X坐标将要移动到的位置
 	private moveToY: number;	//Y坐标将要移动到的位置
 	private maxLen: number = 150;	//箭头的最大长度
@@ -55,8 +54,9 @@ class Game extends egret.DisplayObjectContainer {
 		this.stageW = this.stage.stageWidth;
 		this.stageH = this.stage.stageHeight;
 
-		//背景云彩
-        this.addCloud();
+		//游戏背景
+		let gameBack = new GameBackground(this.stageW, this.stageH);
+		this.addChild(gameBack);
 
 		//前一个台阶的x值
 		let frontStepX = 0;
@@ -67,7 +67,6 @@ class Game extends egret.DisplayObjectContainer {
             step.width = 120;
             step.height = 25;
 			step.y = this.objectBeginY + this.objectWH;
-			// step.x = Math.random()*200 + 300*i + 120;
 			step.x = frontStepX + step.width + 50 +  Math.random()*300;
             this.addChild(step);
 
@@ -153,8 +152,8 @@ class Game extends egret.DisplayObjectContainer {
 
 	private touchMove(event: egret.TouchEvent) {
 	
-		// //清除上次画的箭头
-		// this.guideLine.graphics.clear();
+		//清除上次画的箭头
+		this.guideLine.graphics.clear();
 
 		//初始化箭头
 		this.arrow.width = 0;
@@ -217,16 +216,16 @@ class Game extends egret.DisplayObjectContainer {
 		this.arrow.height = 10;
 		this.arrow.rotation = -angle;
 
-		// //设置箭头的贝塞尔曲线控制点
-		// let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
-		// let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2 - 20;
+		//设置箭头的贝塞尔曲线控制点
+		let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
+		let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2 - 20;
 
-		// //画箭头
- 		// this.guideLine.graphics.lineStyle(5,0xFF0000);
-        // this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
-		// this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
-        // this.guideLine.graphics.endFill();
-        // this.addChild(this.guideLine);
+		//画箭头
+ 		this.guideLine.graphics.lineStyle(5,0xFF0000);
+        this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
+		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
+        this.guideLine.graphics.endFill();
+        this.addChild(this.guideLine);
 
 	}
 
@@ -234,8 +233,8 @@ class Game extends egret.DisplayObjectContainer {
 
 	private touchEnd(event: egret.TouchEvent) {
 
-		// //清除箭头
-		// this.guideLine.graphics.clear();
+		//清除箭头
+		this.guideLine.graphics.clear();
 
 		//初始化箭头
 		this.arrow.width = 0;
@@ -296,6 +295,10 @@ class Game extends egret.DisplayObjectContainer {
 
 			if(isHit) {
 				this.hitAction(index);
+				// this.speedUp();
+				//
+				let speed = new SpeedMotion();
+				this.addChild(speed);
 			}
 		}	
 	}
@@ -352,7 +355,6 @@ class Game extends egret.DisplayObjectContainer {
 		for(var addCount = 0; addCount < this.newCount; addCount++ ) {
 			let step = this.createBitmapByName("ladder_png");
 			step.y = this.objectBeginY + this.objectWH;
-			// step.x = Math.random()*200 + 300*addCount + endStep.x + 250;
 			step.x = frontX + step.width + 50 +  Math.random()*300;
 			step.width = 120;
 			step.height = 25;
@@ -367,73 +369,6 @@ class Game extends egret.DisplayObjectContainer {
 		//移动之后重新添加交互事件
 		this.addTouchEvent();
 	}
-
-	//加速
-	private  speedUp() {
-
-		var timer: egret.Timer = new egret.Timer(350, 20);
-		timer.addEventListener(egret.TimerEvent.TIMER,this.timerFunc,this);
-	    timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE,this.timerComFunc,this);
-		timer.start();
-	}
-
-	private timerFunc() {
-
-	}
-	private timerComFunc() {
-
-	}
-
-
-
-
-	 //添加背景
-    private addCloud() {
-        //舞台背景
-		let background = new egret.Sprite;
-        background.graphics.beginFill(0x7AC5CD,1);
-        background.graphics.drawRect(0,0,this.stageW,this.stageH);
-        background.graphics.endFill();
-        this.addChild(background);
-
-        let cloud1 = this.createBitmapByName("yun01_png");
-        cloud1.x = 20;
-        cloud1.y = 111;
-        cloud1.width = 97;
-        cloud1.height = 70;
-        this.addChild(cloud1);
-        egret.Tween.get(cloud1, {loop:true}).to({x:this.stageW}, 35000).to({x:-100}, 35000);
-
-        let cloud2 = this.createBitmapByName("yun03_png");
-        cloud2.x = 200;
-        cloud2.y = 211;
-        cloud2.width = 144;
-        cloud2.height = 82;
-        this.addChild(cloud2);
-        egret.Tween.get(cloud2, {loop:true}).to({x:this.stageW}, 50000).to({x:-200}, 50000);
-
-        let cloud3 = this.createBitmapByName("yun02_png");
-        cloud3.x = 640;
-        cloud3.y = 500;
-        cloud3.width = 73;
-        cloud3.height = 44;
-        this.addChild(cloud3);
-        egret.Tween.get(cloud3, {loop:true}).to({x:-100}, 30000).to({x:this.stageW}, 30000);
-
-        let cloud4 = this.createBitmapByName("yun04_png");
-        cloud4.x = 40;
-        cloud4.y = 644;
-        cloud4.width = 112;
-        cloud4.height = 76;
-        this.addChild(cloud4);
-        egret.Tween.get(cloud4, {loop:true}).to({x:this.stageW}, 40000).to({x:-120}, 40000);
-
-    }
-
-	
-
-
-
 
 
 }

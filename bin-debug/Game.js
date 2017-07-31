@@ -10,7 +10,7 @@ var Game = (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
-        _this.totalStep = 10;
+        _this.totalStep = 5; //台阶数量
         _this.stepArray = []; //阶梯数组
         _this.startX = 200; //初始x值 (台阶中心点为准)
         _this.metersCount = 0; //走的总米数
@@ -20,13 +20,13 @@ var Game = (function (_super) {
         _this.objectWH = 80; //对象宽高
         _this.objectPoint = new egret.Point(0, 0); //对象出发点
         _this.objectBeginY = 350;
-        _this.arrow = _this.createBitmapByName("ladder_png");
+        _this.arrow = _this.createBitmapByName("ladder_png"); //指示箭头
         //touch and line
         _this.touchPoint = new egret.Point(0, 0); //开始触摸的点
-        _this.guideLine = new egret.Shape(); //路径引导线
         _this.maxLen = 150; //箭头的最大长度
         //hit
         _this.hasHit = false; //如果未碰撞到,恢复对象位置
+        _this.historyArrow = _this.createBitmapByName("ladder_png");
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
     }
@@ -41,17 +41,21 @@ var Game = (function (_super) {
         this.stageH = this.stage.stageHeight;
         //背景云彩
         this.addCloud();
+        //前一个台阶的x值
+        var frontStepX = 0;
         //添加台阶, 台阶添加背景容器来控制x值
         for (var i = 0; i < this.totalStep; i++) {
             var step = this.createBitmapByName("ladder_png");
-            step.y = this.objectBeginY + this.objectWH;
-            step.x = Math.random() * 100 + 200 * i + 120;
             step.width = 120;
             step.height = 25;
+            step.y = this.objectBeginY + this.objectWH;
+            // step.x = Math.random()*200 + 300*i + 120;
+            step.x = frontStepX + step.width + 50 + Math.random() * 300;
             this.addChild(step);
             if (i == 0) {
                 step.x = this.startX - step.width / 2;
             }
+            frontStepX = step.x;
             if (i > 0 && i < this.wordArray.length + 1) {
                 var word = new egret.TextField();
                 word.x = step.x;
@@ -112,8 +116,12 @@ var Game = (function (_super) {
         this.hasHit = false;
     };
     Game.prototype.touchMove = function (event) {
-        //清除上次画的箭头
-        this.guideLine.graphics.clear();
+        // //清除上次画的箭头
+        // this.guideLine.graphics.clear();
+        //初始化箭头
+        this.arrow.width = 0;
+        this.arrow.height = 0;
+        this.arrow.rotation = 0;
         //控制点超出屏幕时容错
         if (event.localY < 0) {
             this.moveToY = 0;
@@ -173,6 +181,16 @@ var Game = (function (_super) {
         this.arrow.width = 0;
         this.arrow.height = 0;
         this.arrow.rotation = 0;
+        //创建历史轨迹箭头
+        var radian = (this.moveToX - this.objectPoint.x) / (this.objectPoint.y - this.moveToY);
+        var angle = 90 - Math.atan(radian) * 180 / Math.PI;
+        this.historyArrow.y = this.objectPoint.y;
+        this.historyArrow.x = this.objectPoint.x;
+        this.historyArrow.width = this.lineLen;
+        this.historyArrow.height = 10;
+        this.historyArrow.rotation = -angle;
+        this.historyArrow.alpha = 0.2;
+        this.addChild(this.historyArrow);
         //动画时移除交互事件
         this.removeTouchEvent();
         //根据线的长度计算最高点 2倍
@@ -212,6 +230,8 @@ var Game = (function (_super) {
         }
     };
     Game.prototype.hitAction = function (hitIndex) {
+        //清除历史箭头
+        this.removeChild(this.historyArrow);
         //发生碰撞,设置Y值, 移除缓动动画
         this.mainObject.y = this.objectBeginY;
         egret.Tween.removeTweens(this);
@@ -237,21 +257,24 @@ var Game = (function (_super) {
         this.stepArray.splice(0, hitIndex);
         this.newCount = hitIndex;
         //台阶动画结束后再执行
-        var timer = new egret.Timer(350, 1);
+        var timer = new egret.Timer(310, 1);
         timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.tweenComplete, this);
         timer.start();
     };
     Game.prototype.tweenComplete = function () {
         //拿到最后一个台阶的x值
         var endStep = this.stepArray[this.stepArray.length - 1];
+        var frontX = endStep.x;
         //末尾添加台阶index
         for (var addCount = 0; addCount < this.newCount; addCount++) {
             var step = this.createBitmapByName("ladder_png");
             step.y = this.objectBeginY + this.objectWH;
-            step.x = Math.random() * 100 + 200 * addCount + endStep.x + 250;
+            // step.x = Math.random()*200 + 300*addCount + endStep.x + 250;
+            step.x = frontX + step.width + 50 + Math.random() * 300;
             step.width = 120;
             step.height = 25;
             this.addChild(step);
+            frontX = step.x;
             //添加新增的台阶
             this.stepArray.push(step);
         }

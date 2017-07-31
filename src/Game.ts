@@ -15,7 +15,7 @@ class Game extends egret.DisplayObjectContainer {
 	//public
 	private stageW: number;	//舞台宽度
 	private stageH: number;	//舞台高度
-	private totalStep:number = 10;
+	private totalStep:number = 5;	//台阶数量
 	private stepArray = [];	//阶梯数组
 
 	private startX:number = 200; //初始x值 (台阶中心点为准)
@@ -31,12 +31,12 @@ class Game extends egret.DisplayObjectContainer {
 	private objectWH:number = 80;	//对象宽高
 	private objectPoint = new egret.Point(0,0);	//对象出发点
 	private objectBeginY = 350;
+	private arrow = this.createBitmapByName("ladder_png");	//指示箭头
 
-	private arrow = this.createBitmapByName("ladder_png");	
 	//touch and line
 	private touchPoint = new egret.Point(0,0);	//开始触摸的点
 	private lineMaxW: number; //引导线最高长度
-	private guideLine:egret.Shape = new egret.Shape();	//路径引导线
+	// private guideLine:egret.Shape = new egret.Shape();	//路径引导线
 	private moveToX: number;	//X坐标将要移动到的位置
 	private moveToY: number;	//Y坐标将要移动到的位置
 	private maxLen: number = 150;	//箭头的最大长度
@@ -58,19 +58,24 @@ class Game extends egret.DisplayObjectContainer {
 		//背景云彩
         this.addCloud();
 
+		//前一个台阶的x值
+		let frontStepX = 0;
 		//添加台阶, 台阶添加背景容器来控制x值
 		for(var i = 0; i < this.totalStep; i++) {
 
 			let step = this.createBitmapByName("ladder_png");
-			step.y = this.objectBeginY + this.objectWH;
-			step.x = Math.random()*100 + 200*i + 120;
             step.width = 120;
             step.height = 25;
+			step.y = this.objectBeginY + this.objectWH;
+			// step.x = Math.random()*200 + 300*i + 120;
+			step.x = frontStepX + step.width + 50 +  Math.random()*300;
             this.addChild(step);
 
 			if(i == 0) {
 				step.x = this.startX - step.width/2;
 			}
+
+			frontStepX = step.x;
 
 			if(i > 0 && i < this.wordArray.length+1){
 				let word  = new egret.TextField();
@@ -148,8 +153,13 @@ class Game extends egret.DisplayObjectContainer {
 
 	private touchMove(event: egret.TouchEvent) {
 	
-		//清除上次画的箭头
-		this.guideLine.graphics.clear();
+		// //清除上次画的箭头
+		// this.guideLine.graphics.clear();
+
+		//初始化箭头
+		this.arrow.width = 0;
+		this.arrow.height = 0;
+		this.arrow.rotation = 0;
 
 		//控制点超出屏幕时容错
 		if(event.localY < 0) {
@@ -220,6 +230,8 @@ class Game extends egret.DisplayObjectContainer {
 
 	}
 
+	private historyArrow = this.createBitmapByName("ladder_png");
+
 	private touchEnd(event: egret.TouchEvent) {
 
 		// //清除箭头
@@ -230,6 +242,16 @@ class Game extends egret.DisplayObjectContainer {
 		this.arrow.height = 0;
 		this.arrow.rotation = 0;
 
+		//创建历史轨迹箭头
+		let radian =(this.moveToX-this.objectPoint.x)/(this.objectPoint.y - this.moveToY);
+		let angle = 90 - Math.atan(radian) * 180 / Math.PI;
+		this.historyArrow.y = this.objectPoint.y;
+		this.historyArrow.x = this.objectPoint.x;
+		this.historyArrow.width = this.lineLen;
+		this.historyArrow.height = 10;
+		this.historyArrow.rotation = -angle;
+		this.historyArrow.alpha = 0.2;
+		this.addChild(this.historyArrow);
 
 		//动画时移除交互事件
 		this.removeTouchEvent();
@@ -279,6 +301,8 @@ class Game extends egret.DisplayObjectContainer {
 	}
 
 	private hitAction(hitIndex:number) {
+		//清除历史箭头
+		this.removeChild(this.historyArrow);
 
 
 		//发生碰撞,设置Y值, 移除缓动动画
@@ -314,7 +338,7 @@ class Game extends egret.DisplayObjectContainer {
 		this.newCount = hitIndex;
 
 		//台阶动画结束后再执行
-		var timer: egret.Timer = new egret.Timer(350, 1);
+		var timer: egret.Timer = new egret.Timer(310, 1);
 		timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.tweenComplete, this);
 		timer.start();
 	}
@@ -323,15 +347,18 @@ class Game extends egret.DisplayObjectContainer {
 		//拿到最后一个台阶的x值
 		let endStep = this.stepArray[this.stepArray.length - 1];
 
+		let frontX = endStep.x;
 		//末尾添加台阶index
 		for(var addCount = 0; addCount < this.newCount; addCount++ ) {
 			let step = this.createBitmapByName("ladder_png");
 			step.y = this.objectBeginY + this.objectWH;
-			step.x = Math.random()*100 + 200*addCount + endStep.x + 250;
-
+			// step.x = Math.random()*200 + 300*addCount + endStep.x + 250;
+			step.x = frontX + step.width + 50 +  Math.random()*300;
 			step.width = 120;
 			step.height = 25;
 			this.addChild(step);
+
+			frontX = step.x;
 
 			//添加新增的台阶
 			this.stepArray.push(step);

@@ -1,0 +1,55 @@
+{
+	"groups": [
+		{
+			"keys": "bg_jpg,egret_icon_png,description_json,beibei_png,ladder_png,yun01_png,yun02_png,yun03_png,yun04_png",
+			"name": "preload"
+		}
+	],
+	"resources": [
+		{
+			"name": "bg_jpg",
+			"type": "image",
+			"url": "assets/bg.jpg"
+		},
+		{
+			"name": "egret_icon_png",
+			"type": "image",
+			"url": "assets/egret_icon.png"
+		},
+		{
+			"name": "description_json",
+			"type": "json",
+			"url": "config/description.json"
+		},
+		{
+			"name": "beibei_png",
+			"type": "image",
+			"url": "game/beibei.png"
+		},
+		{
+			"name": "ladder_png",
+			"type": "image",
+			"url": "test/ladder.png"
+		},
+		{
+			"name": "yun01_png",
+			"type": "image",
+			"url": "test/yun01.png"
+		},
+		{
+			"name": "yun02_png",
+			"type": "image",
+			"url": "test/yun02.png"
+		},
+		{
+			"name": "yun03_png",
+			"type": "image",
+			"url": "test/yun03.png"
+		},
+		{
+			"name": "yun04_png",
+			"type": "image",
+			"url": "test/yun04.png"
+		}
+	]
+}

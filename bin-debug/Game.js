@@ -20,6 +20,7 @@ var Game = (function (_super) {
         _this.objectWH = 80; //对象宽高
         _this.objectPoint = new egret.Point(0, 0); //对象出发点
         _this.objectBeginY = 350;
+        _this.arrow = _this.createBitmapByName("ladder_png");
         //touch and line
         _this.touchPoint = new egret.Point(0, 0); //开始触摸的点
         _this.guideLine = new egret.Shape(); //路径引导线
@@ -73,8 +74,15 @@ var Game = (function (_super) {
         //设置弹跳对象初始位置
         this.objectPoint.x = this.mainObject.x + this.objectWH / 2;
         this.objectPoint.y = this.mainObject.y + this.objectWH;
+        this.arrow = this.createBitmapByName("ladder_png");
+        this.arrow.y = this.objectPoint.y;
+        this.arrow.x = this.objectPoint.x;
+        this.arrow.width = 0;
+        this.arrow.height = 0;
+        this.addChild(this.arrow);
         //添加touch事件
         this.addTouchEvent();
+        //米数提示文字
         this.metersLabel = new egret.TextField();
         this.metersLabel.x = 0;
         this.metersLabel.y = 20;
@@ -134,23 +142,37 @@ var Game = (function (_super) {
         }
         if (this.moveToX < this.objectPoint.x) {
             this.moveToX = this.objectPoint.x;
+            this.moveToY = this.objectPoint.y - this.lineLen;
         }
         if (this.moveToY > this.objectPoint.y) {
             this.moveToY = this.objectPoint.y;
+            this.moveToX = this.objectPoint.x + this.lineLen;
         }
-        //设置箭头的贝塞尔曲线控制点
-        var controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x) / 2;
-        var controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y) / 2;
-        //画箭头
-        this.guideLine.graphics.lineStyle(5, 0xFFFFFF);
-        this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y); //起点
-        this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY); //控制点,终点
-        this.guideLine.graphics.endFill();
-        this.addChild(this.guideLine);
+        //计算角度来旋转箭头
+        //cosB = a/c
+        var radian = (this.moveToX - this.objectPoint.x) / (this.objectPoint.y - this.moveToY);
+        //通过弧度Math.atan(radian) 计算角度 1弧度＝180°/π （≈57.3°）
+        var angle = 90 - Math.atan(radian) * 180 / Math.PI;
+        this.arrow.width = this.lineLen;
+        this.arrow.height = 10;
+        this.arrow.rotation = -angle;
+        // //设置箭头的贝塞尔曲线控制点
+        // let controlX = this.objectPoint.x + (this.moveToX - this.objectPoint.x)/2;
+        // let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2 - 20;
+        // //画箭头
+        // this.guideLine.graphics.lineStyle(5,0xFF0000);
+        // this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
+        // this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
+        // this.guideLine.graphics.endFill();
+        // this.addChild(this.guideLine);
     };
     Game.prototype.touchEnd = function (event) {
-        //清楚箭头
-        this.guideLine.graphics.clear();
+        // //清除箭头
+        // this.guideLine.graphics.clear();
+        //初始化箭头
+        this.arrow.width = 0;
+        this.arrow.height = 0;
+        this.arrow.rotation = 0;
         //动画时移除交互事件
         this.removeTouchEvent();
         //根据线的长度计算最高点 2倍

@@ -17,6 +17,7 @@ class Game extends egret.DisplayObjectContainer {
 	private stageH: number;	//舞台高度
 	private totalStep:number = 5;	//台阶数量
 	private stepArray = [];	//阶梯数组
+	private wordTFArray = []; //字母textfield
 
 	private startX:number = 200; //初始x值 (台阶中心点为准)
 
@@ -58,9 +59,19 @@ class Game extends egret.DisplayObjectContainer {
 		let gameBack = new GameBackground(this.stageW, this.stageH);
 		this.addChild(gameBack);
 
+		//第一个台阶特殊 手动创建
+		let step = this.createBitmapByName("ladder_png");
+		step.width = 120;
+		step.height = 25;
+		step.y = this.objectBeginY + this.objectWH;
+		step.x = this.startX - step.width/2;
+		this.addChild(step);
+		this.stepArray.push(step);
+
 		//前一个台阶的x值
-		let frontStepX = 0;
-		//添加台阶, 台阶添加背景容器来控制x值
+		let frontStepX = step.x;
+
+		//添加台阶
 		for(var i = 0; i < this.totalStep; i++) {
 
 			let step = this.createBitmapByName("ladder_png");
@@ -69,27 +80,22 @@ class Game extends egret.DisplayObjectContainer {
 			step.y = this.objectBeginY + this.objectWH;
 			step.x = frontStepX + step.width + 50 +  Math.random()*300;
             this.addChild(step);
-
-			if(i == 0) {
-				step.x = this.startX - step.width/2;
-			}
+			this.stepArray.push(step);
 
 			frontStepX = step.x;
+			
+			let word  = new egret.TextField();
+			word.x = step.x;
+			word.y = step.y - 40;
+			word.width = 120;
+			word.height = 40;
+			word.textColor = 0xFF0000;
+			word.textAlign =  egret.HorizontalAlign.CENTER;
+			word.size = 30;
+			word.text = this.wordArray[i];
+			this.addChild(word);
+			this.wordTFArray.push(word);
 
-			if(i > 0 && i < this.wordArray.length+1){
-				let word  = new egret.TextField();
-				word.x = step.x;
-				word.y = step.y - 40;
-				word.width = 120;
-				word.height = 40;
-				word.textColor = 0xFF0000;
-				word.textAlign =  egret.HorizontalAlign.CENTER;
-				word.size = 30;
-				word.text = this.wordArray[i-1];
-				// this.addChild(word);
-			}
-
-			this.stepArray.push(step);
 		}
 
 		//游戏对象
@@ -103,13 +109,13 @@ class Game extends egret.DisplayObjectContainer {
 		this.objectPoint.x = this.mainObject.x + this.objectWH/2;
 		this.objectPoint.y = this.mainObject.y + this.objectWH;
 
-
+		//指示箭头
 		this.arrow = this.createBitmapByName("ladder_png");
 		this.arrow.y = this.objectPoint.y;
 		this.arrow.x = this.objectPoint.x;
 		this.arrow.width = 0;
 		this.arrow.height = 0;
-		this.addChild(this.arrow);
+		// this.addChild(this.arrow);
 
 		//添加touch事件
 		this.addTouchEvent();
@@ -125,7 +131,6 @@ class Game extends egret.DisplayObjectContainer {
         this.metersLabel.size = 30;
         this.metersLabel.text = "您已经走了" + this.metersCount + "米";
         this.addChild(this.metersLabel);
-
     }
 
 	private addTouchEvent() {
@@ -193,17 +198,14 @@ class Game extends egret.DisplayObjectContainer {
 			this.moveToY = this.objectPoint.y + newY;
 		}
 
-
 		if(this.moveToX < this.objectPoint.x) {
 			this.moveToX = this.objectPoint.x;
 			this.moveToY = this.objectPoint.y-this.lineLen;
-
 		}
 
 		if(this.moveToY > this.objectPoint.y) {
 			this.moveToY = this.objectPoint.y;
 			this.moveToX = this.objectPoint.x+this.lineLen;
-
 		}
 
 		//计算角度来旋转箭头
@@ -221,12 +223,11 @@ class Game extends egret.DisplayObjectContainer {
 		let controlY = this.objectPoint.y + (this.moveToY - this.objectPoint.y)/2 - 20;
 
 		//画箭头
- 		this.guideLine.graphics.lineStyle(5,0xFF0000);
+ 		this.guideLine.graphics.lineStyle(5,0xFFFFFF);
         this.guideLine.graphics.moveTo(this.objectPoint.x, this.objectPoint.y);	//起点
 		this.guideLine.graphics.curveTo(controlX, controlY, this.moveToX, this.moveToY);	//控制点,终点
         this.guideLine.graphics.endFill();
         this.addChild(this.guideLine);
-
 	}
 
 	private historyArrow = this.createBitmapByName("ladder_png");
@@ -250,7 +251,7 @@ class Game extends egret.DisplayObjectContainer {
 		this.historyArrow.height = 10;
 		this.historyArrow.rotation = -angle;
 		this.historyArrow.alpha = 0.2;
-		this.addChild(this.historyArrow);
+		// this.addChild(this.historyArrow);
 
 		//动画时移除交互事件
 		this.removeTouchEvent();
@@ -295,17 +296,18 @@ class Game extends egret.DisplayObjectContainer {
 
 			if(isHit) {
 				this.hitAction(index);
-				// this.speedUp();
-				//
-				let speed = new SpeedMotion();
-				this.addChild(speed);
+				// //加速动画
+				// let speed = new SpeedMotion();
+				// this.addChild(speed);
 			}
 		}	
 	}
 
 	private hitAction(hitIndex:number) {
 		//清除历史箭头
-		this.removeChild(this.historyArrow);
+		if(this.historyArrow && this.historyArrow.parent) {
+			this.historyArrow.parent.removeChild(this.historyArrow)
+		};
 
 
 		//发生碰撞,设置Y值, 移除缓动动画
@@ -328,15 +330,31 @@ class Game extends egret.DisplayObjectContainer {
 			egret.Tween.get(ste).to({x:ste.x - moveLen}, 300);
 		}
 
+		for(var z = 0; z < this.wordTFArray.length; z++ ) {
+			var word = this.wordTFArray[z];
+			egret.Tween.get(word).to({x:word.x - moveLen}, 300);
+		}
+
 		//改变对象x值
 		egret.Tween.get(this.mainObject).to({x:this.startX - this.mainObject.width/2}, 300);
 
+		//删除0到i(脚下之前)字母
+		for(var de = 0; de < hitIndex; de++ ) {
+			if(this.wordTFArray[de] && this.wordTFArray[de].parent) {
+				this.wordTFArray[de].parent.removeChild(this.wordTFArray[de])
+			};
+		}
+
 		//删除0到i(脚下之前)的台阶 
 		for(var del = 0; del < hitIndex; del++ ) {
-			this.removeChild(this.stepArray[del]);
+			if(this.stepArray[del] && this.stepArray[del].parent) {
+				this.stepArray[del].parent.removeChild(this.stepArray[del])
+			};
 		}
+
 		//删除跳跃过的数据
 		this.stepArray.splice(0, hitIndex);
+		this.wordTFArray.splice(0, hitIndex);
 
 		this.newCount = hitIndex;
 
@@ -364,6 +382,22 @@ class Game extends egret.DisplayObjectContainer {
 
 			//添加新增的台阶
 			this.stepArray.push(step);
+
+
+
+			// let word  = new egret.TextField();
+			// word.x = step.x;
+			// word.y = step.y - 40;
+			// word.width = 120;
+			// word.height = 40;
+			// word.textColor = 0xFF0000;
+			// word.textAlign =  egret.HorizontalAlign.CENTER;
+			// word.size = 30;
+			// word.text = this.wordArray[addCount];
+			// this.addChild(word);
+
+			// this.wordTFArray.push(word);
+
 		}
 
 		//移动之后重新添加交互事件

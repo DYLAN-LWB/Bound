@@ -69,4 +69,4 @@ var SpeedMotion = (function (_super) {
     return SpeedMotion;
 }(egret.Sprite));
 __reflect(SpeedMotion.prototype, "SpeedMotion");
-//# sourceMappingURL=SpeedMotion.js.map
+//# sourceMappingURL=GameSpeedMotion.js.map

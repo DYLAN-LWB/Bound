@@ -15,7 +15,7 @@ var Game = (function (_super) {
         _this.wordTFArray = []; //字母textfield
         _this.startX = 200; //初始x值 (台阶中心点为准)
         _this.metersCount = 0; //走的总米数
-        _this.wordArray = ["a", "p", "p", "l", "e"];
+        _this.wordArray = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
         //object
         _this.mainObject = _this.createBitmapByName("beibei_png"); //弹跳对象
         _this.objectWH = 80; //对象宽高
@@ -76,6 +76,8 @@ var Game = (function (_super) {
             this.addChild(word);
             this.wordTFArray.push(word);
         }
+        //每次添加台阶都要删除字母
+        this.wordArray.splice(0, this.totalStep - 1);
         //游戏对象
         this.mainObject.width = this.objectWH;
         this.mainObject.height = this.objectWH;
@@ -243,7 +245,7 @@ var Game = (function (_super) {
             this.historyArrow.parent.removeChild(this.historyArrow);
         }
         ;
-        //发生碰撞,设置Y值, 移除缓动动画
+        //发生碰撞,设置Y值, 移除弹跳对象的缓动动画
         this.mainObject.y = this.objectBeginY;
         egret.Tween.removeTweens(this);
         //不重置对象位置,跳跃成功,不死
@@ -253,34 +255,18 @@ var Game = (function (_super) {
         //移动米数
         this.metersCount += Math.round(moveLen / 100);
         this.metersLabel.text = "您已经走了" + this.metersCount + "米";
-        //遍历数组 改变x值
+        //遍历数组 改变台阶x值
         for (var j = 0; j < this.stepArray.length; j++) {
             var ste = this.stepArray[j];
             egret.Tween.get(ste).to({ x: ste.x - moveLen }, 300);
         }
+        //遍历数组 改变字母x值
         for (var z = 0; z < this.wordTFArray.length; z++) {
             var word = this.wordTFArray[z];
             egret.Tween.get(word).to({ x: word.x - moveLen }, 300);
         }
-        //改变对象x值
+        //改变弹跳对象x值
         egret.Tween.get(this.mainObject).to({ x: this.startX - this.mainObject.width / 2 }, 300);
-        //删除0到i(脚下之前)字母
-        for (var de = 0; de < hitIndex; de++) {
-            if (this.wordTFArray[de] && this.wordTFArray[de].parent) {
-                this.wordTFArray[de].parent.removeChild(this.wordTFArray[de]);
-            }
-            ;
-        }
-        //删除0到i(脚下之前)的台阶 
-        for (var del = 0; del < hitIndex; del++) {
-            if (this.stepArray[del] && this.stepArray[del].parent) {
-                this.stepArray[del].parent.removeChild(this.stepArray[del]);
-            }
-            ;
-        }
-        //删除跳跃过的数据
-        this.stepArray.splice(0, hitIndex);
-        this.wordTFArray.splice(0, hitIndex);
         this.newCount = hitIndex;
         //台阶动画结束后再执行
         var timer = new egret.Timer(310, 1);
@@ -288,6 +274,26 @@ var Game = (function (_super) {
         timer.start();
     };
     Game.prototype.tweenComplete = function () {
+        //删除0到i的字母
+        for (var de = 0; de < this.newCount; de++) {
+            if (this.wordTFArray[de] && this.wordTFArray[de].parent) {
+                this.wordTFArray[de].parent.removeChild(this.wordTFArray[de]);
+            }
+            ;
+        }
+        //删除0到i(脚下之前)的台阶 
+        for (var del = 0; del < this.newCount; del++) {
+            if (this.stepArray[del] && this.stepArray[del].parent) {
+                this.stepArray[del].parent.removeChild(this.stepArray[del]);
+            }
+            ;
+        }
+        //删除跳跃过的数据
+        this.stepArray.splice(0, this.newCount);
+        this.wordTFArray.splice(0, this.newCount);
+        //字母每次添加台阶都要删除
+        this.wordArray.splice(0, this.newCount);
+        console.log(this.wordArray);
         //拿到最后一个台阶的x值
         var endStep = this.stepArray[this.stepArray.length - 1];
         var frontX = endStep.x;
@@ -302,6 +308,18 @@ var Game = (function (_super) {
             frontX = step.x;
             //添加新增的台阶
             this.stepArray.push(step);
+            var word = new egret.TextField();
+            word.x = step.x;
+            word.y = step.y - 40;
+            word.width = 120;
+            word.height = 40;
+            word.textColor = 0xFF0000;
+            word.textAlign = egret.HorizontalAlign.CENTER;
+            word.size = 30;
+            word.text = this.wordArray[addCount];
+            this.addChild(word);
+            console.log(this.wordArray[addCount]);
+            this.wordTFArray.push(word);
         }
         //移动之后重新添加交互事件
         this.addTouchEvent();

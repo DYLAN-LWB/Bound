@@ -1,21 +1,11 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json,beibei_png,ladder_png,yun01_png,yun02_png,yun03_png,yun04_png",
+			"keys": "description_json,beibei_png,ladder_png,yun01_png,yun02_png,yun03_png,yun04_png,1_png,2_png,3_png,bg_png,black_png,drawboard_png,gamebody_json,shareGui_png,bg_mp3,countdown_mp3,down_mp3,jump_mp3,rocket_mp3",
 			"name": "preload"
 		}
 	],
 	"resources": [
-		{
-			"name": "bg_jpg",
-			"type": "image",
-			"url": "assets/bg.jpg"
-		},
-		{
-			"name": "egret_icon_png",
-			"type": "image",
-			"url": "assets/egret_icon.png"
-		},
 		{
 			"name": "description_json",
 			"type": "json",
@@ -50,6 +40,72 @@
 			"name": "yun04_png",
 			"type": "image",
 			"url": "test/yun04.png"
+		},
+		{
+			"name": "1_png",
+			"type": "image",
+			"url": "assets/1.png"
+		},
+		{
+			"name": "2_png",
+			"type": "image",
+			"url": "assets/2.png"
+		},
+		{
+			"name": "3_png",
+			"type": "image",
+			"url": "assets/3.png"
+		},
+		{
+			"name": "bg_png",
+			"type": "image",
+			"url": "assets/bg.png"
+		},
+		{
+			"name": "black_png",
+			"type": "image",
+			"url": "assets/black.png"
+		},
+		{
+			"name": "drawboard_png",
+			"type": "image",
+			"url": "assets/drawboard.png"
+		},
+		{
+			"name": "gamebody_json",
+			"type": "sheet",
+			"url": "assets/gamebody.json",
+			"subkeys": "start,tan,title,yun01,yun02,yun03,yun04,di,balloon,beibei,btn_03,btn_05,drawboard,ending,list,prompt_03,quicken,ranking,return"
+		},
+		{
+			"name": "shareGui_png",
+			"type": "image",
+			"url": "assets/shareGui.png"
+		},
+		{
+			"name": "bg_mp3",
+			"type": "sound",
+			"url": "sound/bg.mp3"
+		},
+		{
+			"name": "countdown_mp3",
+			"type": "sound",
+			"url": "sound/countdown.mp3"
+		},
+		{
+			"name": "down_mp3",
+			"type": "sound",
+			"url": "sound/down.mp3"
+		},
+		{
+			"name": "jump_mp3",
+			"type": "sound",
+			"url": "sound/jump.mp3"
+		},
+		{
+			"name": "rocket_mp3",
+			"type": "sound",
+			"url": "sound/rocket.mp3"
 		}
 	]
 }

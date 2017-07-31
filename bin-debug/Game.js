@@ -15,6 +15,7 @@ var Game = (function (_super) {
         _this.wordTFArray = []; //字母textfield
         _this.startX = 200; //初始x值 (台阶中心点为准)
         _this.metersCount = 0; //走的总米数
+        //每次创建台阶都要删除前边的字母
         _this.wordArray = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
         //object
         _this.mainObject = _this.createBitmapByName("beibei_png"); //弹跳对象
@@ -239,6 +240,7 @@ var Game = (function (_super) {
             }
         }
     };
+    //发生碰撞
     Game.prototype.hitAction = function (hitIndex) {
         //清除历史箭头
         if (this.historyArrow && this.historyArrow.parent) {
@@ -252,6 +254,11 @@ var Game = (function (_super) {
         this.hasHit = true;
         //要移动的距离 = 跳到的台阶的中心点 - 初始x值
         var moveLen = this.stepArray[hitIndex].x + this.stepArray[hitIndex].width / 2 - this.startX;
+        //拿到目标台阶上的字母
+        if (hitIndex > 0) {
+            var wordTF = this.wordTFArray[hitIndex - 1];
+            console.log(wordTF.text);
+        }
         //移动米数
         this.metersCount += Math.round(moveLen / 100);
         this.metersLabel.text = "您已经走了" + this.metersCount + "米";
@@ -293,7 +300,6 @@ var Game = (function (_super) {
         this.wordTFArray.splice(0, this.newCount);
         //字母每次添加台阶都要删除
         this.wordArray.splice(0, this.newCount);
-        console.log(this.wordArray);
         //拿到最后一个台阶的x值
         var endStep = this.stepArray[this.stepArray.length - 1];
         var frontX = endStep.x;
@@ -318,7 +324,6 @@ var Game = (function (_super) {
             word.size = 30;
             word.text = this.wordArray[addCount];
             this.addChild(word);
-            console.log(this.wordArray[addCount]);
             this.wordTFArray.push(word);
         }
         //移动之后重新添加交互事件

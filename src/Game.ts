@@ -24,6 +24,7 @@ class Game extends egret.DisplayObjectContainer {
 	private metersCount:number = 0;	//走的总米数
 	private metersLabel: egret.TextField;
 
+	//每次创建台阶都要删除前边的字母
 	private wordArray = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
 
@@ -304,6 +305,7 @@ class Game extends egret.DisplayObjectContainer {
 		}	
 	}
 
+	//发生碰撞
 	private hitAction(hitIndex:number) {
 		//清除历史箭头
 		if(this.historyArrow && this.historyArrow.parent) {
@@ -319,6 +321,13 @@ class Game extends egret.DisplayObjectContainer {
 
 		//要移动的距离 = 跳到的台阶的中心点 - 初始x值
 		let moveLen = this.stepArray[hitIndex].x + this.stepArray[hitIndex].width/2 - this.startX;
+
+		//拿到目标台阶上的字母
+		if(hitIndex > 0) {
+		let wordTF= this.wordTFArray[hitIndex-1];
+		console.log(wordTF.text);
+		}
+
 
 		//移动米数
 		this.metersCount += Math.round(moveLen/100);
@@ -368,8 +377,6 @@ class Game extends egret.DisplayObjectContainer {
 		//字母每次添加台阶都要删除
 		this.wordArray.splice(0, this.newCount);
 
-		console.log(this.wordArray);
-
 		//拿到最后一个台阶的x值
 		let endStep = this.stepArray[this.stepArray.length - 1];
 
@@ -399,10 +406,8 @@ class Game extends egret.DisplayObjectContainer {
 			word.size = 30;
 			word.text = this.wordArray[addCount];
 			this.addChild(word);
-			console.log(this.wordArray[addCount]);
 
 			this.wordTFArray.push(word);
-
 		}
 
 		//移动之后重新添加交互事件

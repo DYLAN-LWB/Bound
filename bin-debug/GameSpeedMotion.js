@@ -18,7 +18,6 @@ var SpeedMotion = (function (_super) {
         return _this;
     }
     SpeedMotion.prototype.timerFunc = function (event) {
-        console.log("timerFunc");
         this.index += 1;
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
@@ -32,7 +31,6 @@ var SpeedMotion = (function (_super) {
         timer1.start();
     };
     SpeedMotion.prototype.timerComFunc1 = function (event) {
-        console.log("timerComFunc1");
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
@@ -45,7 +43,6 @@ var SpeedMotion = (function (_super) {
         timer2.start();
     };
     SpeedMotion.prototype.timerComFunc2 = function (event) {
-        console.log("timerComFunc2" + this.index + this.count);
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
         }

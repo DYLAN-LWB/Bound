@@ -13,10 +13,11 @@ var Game = (function (_super) {
         _this.totalStep = 5; //台阶数量
         _this.stepArray = []; //阶梯数组
         _this.wordTFArray = []; //字母textfield
+        _this.wordImgArray = [];
         _this.startX = 200; //初始x值 (台阶中心点为准)
         _this.metersCount = 0; //走的总米数
         //每次创建台阶都要删除前边的字母
-        _this.wordArray = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+        _this.wordArray = ["g", "o", "o", "d", "a", "p", "p", "l", "e", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
         //object
         _this.mainObject = _this.createBitmapByName("beibei_png"); //弹跳对象
         _this.objectWH = 80; //对象宽高
@@ -30,6 +31,7 @@ var Game = (function (_super) {
         //hit
         _this.hasHit = false; //如果未碰撞到,恢复对象位置
         _this.historyArrow = _this.createBitmapByName("ladder_png");
+        _this.letterString = "";
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
     }
@@ -45,40 +47,49 @@ var Game = (function (_super) {
         //游戏背景
         var gameBack = new GameBackground(this.stageW, this.stageH);
         this.addChild(gameBack);
+        //
+        this.getWords();
         //第一个台阶特殊 手动创建
-        var step = this.createBitmapByName("ladder_png");
-        step.width = 120;
-        step.height = 25;
-        step.y = this.objectBeginY + this.objectWH;
-        step.x = this.startX - step.width / 2;
-        this.addChild(step);
-        this.stepArray.push(step);
+        var firstStep = this.createBitmapByName("ladder_png");
+        firstStep.width = 120;
+        firstStep.height = 25;
+        firstStep.y = this.objectBeginY + this.objectWH;
+        firstStep.x = this.startX - firstStep.width / 2;
+        this.addChild(firstStep);
+        this.stepArray.push(firstStep);
         //前一个台阶的x值
-        var frontStepX = step.x;
+        var frontStepX = firstStep.x;
         //添加台阶
         for (var i = 0; i < this.totalStep; i++) {
-            var step_1 = this.createBitmapByName("ladder_png");
-            step_1.width = 120;
-            step_1.height = 25;
-            step_1.y = this.objectBeginY + this.objectWH;
-            step_1.x = frontStepX + step_1.width + 50 + Math.random() * 300;
-            this.addChild(step_1);
-            this.stepArray.push(step_1);
-            frontStepX = step_1.x;
+            var step = this.createBitmapByName("ladder_png");
+            step.width = 120;
+            step.height = 25;
+            step.y = this.objectBeginY + this.objectWH;
+            step.x = frontStepX + step.width + 50 + Math.random() * 300;
+            this.addChild(step);
+            this.stepArray.push(step);
+            frontStepX = step.x;
             var word = new egret.TextField();
-            word.x = step_1.x;
-            word.y = step_1.y - 40;
-            word.width = 120;
+            word.x = step.x;
+            word.y = step.y - 40;
+            word.width = 30;
             word.height = 40;
-            word.textColor = 0xFF0000;
-            word.textAlign = egret.HorizontalAlign.CENTER;
-            word.size = 30;
             word.text = this.wordArray[i];
+            word.alpha = 0;
             this.addChild(word);
             this.wordTFArray.push(word);
+            var str = "letter_json." + word.text;
+            var wordImg = this.createBitmapByName(str);
+            wordImg.width = 40;
+            wordImg.height = 40;
+            wordImg.y = step.y - 40;
+            wordImg.x = step.x + 40;
+            this.addChild(wordImg);
+            this.wordImgArray.push(wordImg);
         }
         //每次添加台阶都要删除字母
         this.wordArray.splice(0, this.totalStep - 1);
+        console.log(this.wordArray);
         //游戏对象
         this.mainObject.width = this.objectWH;
         this.mainObject.height = this.objectWH;
@@ -257,7 +268,7 @@ var Game = (function (_super) {
         //拿到目标台阶上的字母
         if (hitIndex > 0) {
             var wordTF = this.wordTFArray[hitIndex - 1];
-            console.log(wordTF.text);
+            this.eatLetter(wordTF.text);
         }
         //移动米数
         this.metersCount += Math.round(moveLen / 100);
@@ -271,6 +282,8 @@ var Game = (function (_super) {
         for (var z = 0; z < this.wordTFArray.length; z++) {
             var word = this.wordTFArray[z];
             egret.Tween.get(word).to({ x: word.x - moveLen }, 300);
+            var wordImg = this.wordImgArray[z];
+            egret.Tween.get(wordImg).to({ x: wordImg.x - moveLen }, 300);
         }
         //改变弹跳对象x值
         egret.Tween.get(this.mainObject).to({ x: this.startX - this.mainObject.width / 2 }, 300);
@@ -285,6 +298,7 @@ var Game = (function (_super) {
         for (var de = 0; de < this.newCount; de++) {
             if (this.wordTFArray[de] && this.wordTFArray[de].parent) {
                 this.wordTFArray[de].parent.removeChild(this.wordTFArray[de]);
+                this.wordImgArray[de].parent.removeChild(this.wordImgArray[de]);
             }
             ;
         }
@@ -298,8 +312,10 @@ var Game = (function (_super) {
         //删除跳跃过的数据
         this.stepArray.splice(0, this.newCount);
         this.wordTFArray.splice(0, this.newCount);
+        this.wordImgArray.splice(0, this.newCount);
         //字母每次添加台阶都要删除
         this.wordArray.splice(0, this.newCount);
+        console.log(this.wordArray);
         //拿到最后一个台阶的x值
         var endStep = this.stepArray[this.stepArray.length - 1];
         var frontX = endStep.x;
@@ -307,7 +323,7 @@ var Game = (function (_super) {
         for (var addCount = 0; addCount < this.newCount; addCount++) {
             var step = this.createBitmapByName("ladder_png");
             step.y = this.objectBeginY + this.objectWH;
-            step.x = frontX + step.width + 50 + Math.random() * 300;
+            step.x = frontX + step.width + Math.random() * 300;
             step.width = 120;
             step.height = 25;
             this.addChild(step);
@@ -319,15 +335,33 @@ var Game = (function (_super) {
             word.y = step.y - 40;
             word.width = 120;
             word.height = 40;
-            word.textColor = 0xFF0000;
-            word.textAlign = egret.HorizontalAlign.CENTER;
-            word.size = 30;
             word.text = this.wordArray[addCount];
+            word.alpha = 0;
             this.addChild(word);
+            console.log(this.wordArray);
             this.wordTFArray.push(word);
+            var str = "letter_json." + word.text;
+            var wordImg = this.createBitmapByName(str);
+            wordImg.width = 40;
+            wordImg.height = 40;
+            wordImg.y = step.y - 40;
+            wordImg.x = step.x + 40;
+            this.addChild(wordImg);
+            this.wordImgArray.push(wordImg);
         }
         //移动之后重新添加交互事件
         this.addTouchEvent();
+    };
+    Game.prototype.eatLetter = function (letter) {
+        this.letterString += letter;
+        console.log("吃到的单词 = " + this.letterString);
+        if (this.letterString === "good") {
+            //加速动画
+            var speed = new SpeedMotion();
+            this.addChild(speed);
+        }
+    };
+    Game.prototype.getWords = function () {
     };
     return Game;
 }(egret.DisplayObjectContainer));

@@ -14,7 +14,6 @@ class SpeedMotion extends egret.Sprite {
 
 
 	private timerFunc(event:egret.TimerEvent) {
-        console.log("timerFunc");
         this.index += 1;
 
 		if(this.speedImage && this.speedImage.parent) {
@@ -31,7 +30,6 @@ class SpeedMotion extends egret.Sprite {
 	}
 
 	private timerComFunc1(event:egret.TimerEvent) {
-        console.log("timerComFunc1");
 
 		if(this.speedImage && this.speedImage.parent) {
 			this.speedImage.parent.removeChild(this.speedImage)
@@ -47,7 +45,6 @@ class SpeedMotion extends egret.Sprite {
 	}
 
 	private timerComFunc2(event:egret.TimerEvent) {
-        console.log("timerComFunc2" + this.index + this.count);
 
 		if(this.speedImage && this.speedImage.parent) {
 			this.speedImage.parent.removeChild(this.speedImage)
@@ -64,7 +61,6 @@ class SpeedMotion extends egret.Sprite {
 		    };
         }
 	}
-
 
 
     private createBitmapByName(name: string) {

@@ -1,7 +1,7 @@
 class SpeedMotion extends egret.Sprite {
 
 	private speedImage;
-    private count: number = 10;
+    private count: number = 5;
     private index: number = 0;
 
     public constructor() {

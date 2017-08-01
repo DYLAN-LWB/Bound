@@ -10,7 +10,7 @@ var SpeedMotion = (function (_super) {
     __extends(SpeedMotion, _super);
     function SpeedMotion() {
         var _this = _super.call(this) || this;
-        _this.count = 10;
+        _this.count = 5;
         _this.index = 0;
         var timer = new egret.Timer(300, _this.count);
         timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);

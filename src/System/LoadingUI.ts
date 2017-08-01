@@ -35,14 +35,18 @@ class LoadingUI extends egret.Sprite {
     }
 
     private textField:egret.TextField;
+    private _isPortraitScreen: boolean = false; //横竖屏
 
     private createView():void {
+
         this.textField = new egret.TextField();
-        this.addChild(this.textField);
-        this.textField.y = 300;
-        this.textField.width = 480;
+        this.textField.x = this._isPortraitScreen ? 0 : 600;
+        this.textField.y = this._isPortraitScreen ? 300 : 750;
+        this.textField.width =  750;
         this.textField.height = 100;
         this.textField.textAlign = "center";
+        this.textField.rotation = this._isPortraitScreen ? 0 : -90;
+        this.addChild(this.textField);
     }
 
     public setProgress(current:number, total:number):void {

@@ -38,16 +38,19 @@ var LoadingUI = (function (_super) {
     __extends(LoadingUI, _super);
     function LoadingUI() {
         var _this = _super.call(this) || this;
+        _this._isPortraitScreen = false; //横竖屏
         _this.createView();
         return _this;
     }
     LoadingUI.prototype.createView = function () {
         this.textField = new egret.TextField();
-        this.addChild(this.textField);
-        this.textField.y = 300;
-        this.textField.width = 480;
+        this.textField.x = this._isPortraitScreen ? 0 : 600;
+        this.textField.y = this._isPortraitScreen ? 300 : 750;
+        this.textField.width = 750;
         this.textField.height = 100;
         this.textField.textAlign = "center";
+        this.textField.rotation = this._isPortraitScreen ? 0 : -90;
+        this.addChild(this.textField);
     };
     LoadingUI.prototype.setProgress = function (current, total) {
         this.textField.text = "Loading..." + current + "/" + total;

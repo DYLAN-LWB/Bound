@@ -118,11 +118,11 @@ class Main extends egret.DisplayObjectContainer {
      */
     private createGameScene() {
 
-        let home = new Home();
-        this.addChild(home);
+        // let _home = new Home();
+        // this.addChild(_home);
 
-        // let _game = new Game();
-        // this.addChild(_game);
+        let _game = new Game();
+        this.addChild(_game);
 
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
@@ -145,29 +145,7 @@ class Main extends egret.DisplayObjectContainer {
      * Description file loading is successful, start to play the animation
      */
     private startAnimation(result: string[]) {
-        // let parser = new egret.HtmlTextParser();
 
-        // let textflowArr = result.map(text => parser.parse(text));
-        // let textfield = this.textfield;
-        // let count = -1;
-        // let change = () => {
-        //     count++;
-        //     if (count >= textflowArr.length) {
-        //         count = 0;
-        //     }
-        //     let textFlow = textflowArr[count];
-
-        //     // 切换描述内容
-        //     // Switch to described content
-        //     textfield.textFlow = textFlow;
-        //     let tw = egret.Tween.get(textfield);
-        //     tw.to({ "alpha": 1 }, 200);
-        //     tw.wait(2000);
-        //     tw.to({ "alpha": 0 }, 200);
-        //     tw.call(change, this);
-        // };
-
-        // change();
     }
 }
 

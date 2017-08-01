@@ -13,10 +13,10 @@ var Game = (function (_super) {
         //USER
         //public
         _this._totalStepCount = 5; //台阶数量
-        _this._lifeCount = 1; //x条命
+        _this._lifeCount = 111; //x条命
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
-        _this._scends = 180; //游戏默认180秒
         _this._score = 0; //走的总米数
+        _this._scends = 20; //游戏默认180秒
         _this._isGameOver = true; //游戏是否结束
         _this._stepsArray = []; //阶梯数组
         _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
@@ -32,7 +32,6 @@ var Game = (function (_super) {
         _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
         _this._guideMaxLength = 150; //箭头的最大长度
         _this._isHit = false; //如果未碰撞到,恢复对象位置
-        _this.letterString = "";
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
     }
@@ -46,7 +45,7 @@ var Game = (function (_super) {
         this.setupSteps();
         //添加游戏人物
         this.setupPerson();
-        //添加提示信息
+        //添加提示信息,其他
         this.setupReminder();
         //添加touch事件
         this.addTouchEvent();
@@ -115,17 +114,50 @@ var Game = (function (_super) {
     //设置提示文字,分数,倒计时
     Game.prototype.setupReminder = function () {
         //分数提示
-        this._scoreLabel = new egret.TextField();
-        this._scoreLabel.x = 0;
-        this._scoreLabel.y = 20;
-        this._scoreLabel.width = this.stage.stageWidth;
-        this._scoreLabel.height = 55;
-        this._scoreLabel.textColor = 0xFF0000;
-        this._scoreLabel.textAlign = egret.HorizontalAlign.CENTER;
-        this._scoreLabel.size = 30;
-        this._scoreLabel.text = "您已经走了" + this._score + "米";
-        this.addChild(this._scoreLabel);
+        this._scoreTF = new egret.TextField();
+        this._scoreTF.x = this.stage.stageWidth * 0.25;
+        this._scoreTF.y = 20;
+        this._scoreTF.width = this.stage.stageWidth * 0.5;
+        this._scoreTF.height = 55;
+        this._scoreTF.textColor = 0xFF0000;
+        this._scoreTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._scoreTF.size = 30;
+        this._scoreTF.text = "您已经走了" + this._score + "米";
+        this.addChild(this._scoreTF);
+        //单词提示
+        this._wordTF = new egret.TextField();
+        this._wordTF.x = this.stage.stageWidth * 0.25;
+        this._wordTF.y = 100;
+        this._wordTF.width = this.stage.stageWidth * 0.5;
+        this._wordTF.height = 55;
+        this._wordTF.textColor = 0xFFFFFF;
+        this._wordTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._wordTF.size = 50;
+        this._wordTF.text = "";
+        this.addChild(this._wordTF);
         //倒计时提示
+        this._scendsTF = new egret.TextField();
+        this._scendsTF.x = this.stage.stageWidth * 0.75;
+        this._scendsTF.y = 20;
+        this._scendsTF.width = this.stage.stageWidth * 0.25;
+        this._scendsTF.height = 55;
+        this._scendsTF.fontFamily = "Microsoft YaHei";
+        this._scendsTF.textColor = 0xff6c14;
+        this._scendsTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._scendsTF.size = 50;
+        this._scendsTF.text = this._scends + "秒";
+        this.addChild(this._scendsTF);
+        //游戏计时器
+        this._gameTimer = new egret.Timer(1000, this._scends);
+        this._gameTimer.addEventListener(egret.TimerEvent.TIMER, this.gameTimerFunc, this);
+        this._gameTimer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.gameTimerCompleteFunc, this);
+        this._gameTimer.start();
+        var sound = new egret.Sound();
+        sound.addEventListener(egret.Event.COMPLETE, function () {
+            this._backgroundChannel = sound.play(0, 0);
+            this._backgroundChannel.volume = 0.7;
+        }, this);
+        sound.load("resource/sound/bg.mp3");
         //指示箭头提示
         this._guideArrow = new Bitmap("ladder_png");
         this._guideArrow.y = this._personBeginPoint.y;
@@ -133,6 +165,28 @@ var Game = (function (_super) {
         this._guideArrow.width = 0;
         this._guideArrow.height = 0;
         // this.addChild(this._guideArrow);
+    };
+    //每秒计时
+    Game.prototype.gameTimerFunc = function () {
+        this._scends--;
+        this._scendsTF.text = this._scends + "秒";
+        //剩5秒时播放倒计时音乐
+        if (this._scends == 5) {
+            var sound_1 = new egret.Sound();
+            sound_1.addEventListener(egret.Event.COMPLETE, function () {
+                this._countdownChannel = sound_1.play(0, 0);
+            }, this);
+            sound_1.load("resource/sound/countdown.mp3");
+        }
+    };
+    //计时完成 游戏结束
+    Game.prototype.gameTimerCompleteFunc = function () {
+        if (this._countdownChannel)
+            this._countdownChannel.stop();
+        if (this._backgroundChannel)
+            this._backgroundChannel.stop();
+        if (this._gameTimer)
+            this._gameTimer.stop();
     };
     //添加触摸事件
     Game.prototype.addTouchEvent = function () {
@@ -165,7 +219,6 @@ var Game = (function (_super) {
         //控制点超出屏幕时容错
         if (event.localY < 0) {
             this._touchMoveToY = 0;
-            console.log("超出屏幕");
         }
         //计算触摸点移动到的坐标
         this._touchMoveToX = this._personBeginPoint.x + (event.localX - this._touchBeginPoint.x);
@@ -253,11 +306,24 @@ var Game = (function (_super) {
                     this.addChild(this._normalAlert);
                     this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
                     this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+                    this.gameTimerCompleteFunc();
                 }
+                //掉下去的声音
+                var sound_2 = new egret.Sound();
+                sound_2.addEventListener(egret.Event.COMPLETE, function () {
+                    var channel = sound_2.play(0, 1);
+                }, this);
+                sound_2.load("resource/sound/down.mp3");
             }
             //动画结束后重新添加交互事件 (未发生碰撞)
             this.addTouchEvent();
         }, this);
+        //弹跳时的声音
+        var sound = new egret.Sound();
+        sound.addEventListener(egret.Event.COMPLETE, function () {
+            var channel = sound.play(0, 1);
+        }, this);
+        sound.load("resource/sound/jump.mp3");
     };
     Object.defineProperty(Game.prototype, "factor", {
         //二次贝塞尔曲线的缓动动画实现方式
@@ -285,6 +351,12 @@ var Game = (function (_super) {
     };
     //发生碰撞
     Game.prototype.hitAction = function (hitIndex) {
+        //碰撞时的声音
+        // let sound = new egret.Sound();
+        // sound.addEventListener(egret.Event.COMPLETE, function() {
+        // 	let channel:egret.SoundChannel = sound.play(0,1);
+        // }, this);
+        // sound.load("resource/sound/down.mp3");
         //清除历史箭头
         if (this._historyArrow && this._historyArrow.parent) {
             this._historyArrow.parent.removeChild(this._historyArrow);
@@ -304,7 +376,7 @@ var Game = (function (_super) {
         }
         //移动米数
         this._score += Math.round(moveLen / 100);
-        this._scoreLabel.text = "您已经走了" + this._score + "米";
+        this._scoreTF.text = "您已经走了" + this._score + "米";
         //遍历数组 改变台阶x值
         for (var j = 0; j < this._stepsArray.length; j++) {
             var ste = this._stepsArray[j];
@@ -390,9 +462,8 @@ var Game = (function (_super) {
         this.addTouchEvent();
     };
     Game.prototype.addLetter = function (letter) {
-        this.letterString += letter;
-        console.log("吃到的单词 = " + this.letterString);
-        if (this.letterString === "good") {
+        this._wordTF.text += letter;
+        if (this._wordTF.text == "good") {
             //加速动画
             var speed = new SpeedMotion();
             this.addChild(speed);
@@ -400,7 +471,8 @@ var Game = (function (_super) {
             var timer = new egret.Timer(300, 1);
             timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
                 this._score += 50;
-                this._scoreLabel.text = "您已经走了" + this._score + "米";
+                this._scoreTF.text = "您已经走了" + this._score + "米";
+                this._wordTF.text = "";
             }, this);
             timer.start();
         }

@@ -118,11 +118,11 @@ class Main extends egret.DisplayObjectContainer {
      */
     private createGameScene() {
 
-        // let home = new Home();
-        // this.addChild(home);
+        let home = new Home();
+        this.addChild(home);
 
-        let _game = new Game();
-        this.addChild(_game);
+        // let _game = new Game();
+        // this.addChild(_game);
 
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.

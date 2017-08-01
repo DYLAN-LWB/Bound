@@ -10,11 +10,17 @@ var SpeedMotion = (function (_super) {
     __extends(SpeedMotion, _super);
     function SpeedMotion() {
         var _this = _super.call(this) || this;
-        _this.count = 5;
+        _this.count = 10;
         _this.index = 0;
         var timer = new egret.Timer(300, _this.count);
         timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);
         timer.start();
+        //火箭的声音
+        var sound = new egret.Sound();
+        sound.addEventListener(egret.Event.COMPLETE, function () {
+            this._channel = sound.play(0, 0);
+        }, _this);
+        sound.load("resource/sound/rocket.mp3");
         return _this;
     }
     SpeedMotion.prototype.timerFunc = function (event) {
@@ -23,7 +29,7 @@ var SpeedMotion = (function (_super) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = this.createBitmapByName("1_png");
+        this.speedImage = new Bitmap("1_png");
         this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
         var timer1 = new egret.Timer(100, 1);
@@ -35,7 +41,7 @@ var SpeedMotion = (function (_super) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = this.createBitmapByName("2_png");
+        this.speedImage = new Bitmap("2_png");
         this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
         var timer2 = new egret.Timer(100, 1);
@@ -47,7 +53,7 @@ var SpeedMotion = (function (_super) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = this.createBitmapByName("3_png");
+        this.speedImage = new Bitmap("3_png");
         this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
         if (this.index == this.count) {
@@ -55,13 +61,8 @@ var SpeedMotion = (function (_super) {
                 this.speedImage.parent.removeChild(this.speedImage);
             }
             ;
+            this._channel.stop();
         }
-    };
-    SpeedMotion.prototype.createBitmapByName = function (name) {
-        var result = new egret.Bitmap();
-        var texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
     };
     return SpeedMotion;
 }(egret.Sprite));

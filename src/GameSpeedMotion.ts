@@ -1,8 +1,9 @@
 class SpeedMotion extends egret.Sprite {
 
 	private speedImage;
-    private count: number = 5;
+    private count: number = 10;
     private index: number = 0;
+	private _channel: egret.SoundChannel;
 
     public constructor() {
         super();
@@ -10,6 +11,13 @@ class SpeedMotion extends egret.Sprite {
         let timer: egret.Timer = new egret.Timer(300, this.count);
 		timer.addEventListener(egret.TimerEvent.TIMER,this.timerFunc,this);
 		timer.start();
+
+		//火箭的声音
+		let sound = new egret.Sound();
+		sound.addEventListener(egret.Event.COMPLETE, function() {
+			this._channel = sound.play(0,0);
+		}, this);
+		sound.load("resource/sound/rocket.mp3");
     }
 
 
@@ -20,7 +28,7 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = this.createBitmapByName("1_png");
+		this.speedImage = new Bitmap("1_png");
 		this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
 
@@ -35,7 +43,7 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = this.createBitmapByName("2_png");
+		this.speedImage = new Bitmap("2_png");
 		this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
 
@@ -50,7 +58,7 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = this.createBitmapByName("3_png");
+		this.speedImage = new Bitmap("3_png");
 		this.speedImage.width = this.stage.stageWidth;
         this.addChild(this.speedImage);
 
@@ -59,14 +67,8 @@ class SpeedMotion extends egret.Sprite {
             if(this.speedImage && this.speedImage.parent) {
 			    this.speedImage.parent.removeChild(this.speedImage)
 		    };
+
+			this._channel.stop();
         }
 	}
-
-
-    private createBitmapByName(name: string) {
-        let result = new egret.Bitmap();
-        let texture: egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
-    }
 }

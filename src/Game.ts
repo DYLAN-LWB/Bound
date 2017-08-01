@@ -4,14 +4,18 @@ class Game extends egret.DisplayObjectContainer {
 
 	//public
 	private _totalStepCount = 5;			//台阶数量
-	private _lifeCount = 1;				//x条命
+	private _lifeCount = 111;				//x条命
 	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
-	private _gameTimer;						//游戏倒计时计时器
-    private _scends = 180;					//游戏默认180秒
 	private _score = 0;						//走的总米数
-	private _scoreLabel: egret.TextField;	//米数文字
+	private _scoreTF: egret.TextField;		//米数文字
+	private _scends = 20;					//游戏默认180秒
+	private _scendsTF: egret.TextField;		//倒计时文字
+	private _gameTimer: egret.Timer;		//游戏倒计时计时器
+	private _countdownChannel: egret.SoundChannel;	//倒计时结束的声音
 	private _isGameOver = true;				//游戏是否结束
 	private _hitIndex:number;				//碰撞到的台阶,在当前台阶数组的index
+	private _backgroundChannel: egret.SoundChannel;	//游戏背景音乐
+	private _wordTF: egret.TextField;		//提示完成的单词
 
 	private _stepsArray = [];			//阶梯数组
 	private _letterArray = [];			//字母数组只在每次新增台阶之后删除对象数量的字母
@@ -20,13 +24,13 @@ class Game extends egret.DisplayObjectContainer {
 
 	private _normalAlert: Alert;	//弹窗提示
 
-	private _person = new Bitmap("beibei_png");	//弹跳对象
-	private _personBeginPoint = new egret.Point(0,0);			//对象出发点
+	private _person = new Bitmap("beibei_png");			//弹跳对象
+	private _personBeginPoint = new egret.Point(0,0);	//对象出发点
 	private _personTopY = 350;		//对象的Y值,控制弹跳对象和台阶
 	private _personWH = 80;			//对象宽高
 
-	private _guideLine:egret.Shape = new egret.Shape();				//线条引导
-	private _guideArrow = new Bitmap("ladder_png");	//箭头引导
+	private _guideLine = new egret.Shape();				//线条引导
+	private _guideArrow = new Bitmap("ladder_png");		//箭头引导
 	private _historyArrow = new Bitmap("ladder_png");	//上次箭头引导轨迹
 
 	private _touchBeginPoint = new egret.Point(0,0);	//开始触摸的点
@@ -62,7 +66,7 @@ class Game extends egret.DisplayObjectContainer {
 		//添加游戏人物
 		this.setupPerson();
 
-		//添加提示信息
+		//添加提示信息,其他
 		this.setupReminder();
 
 		//添加touch事件
@@ -146,18 +150,54 @@ class Game extends egret.DisplayObjectContainer {
 	//设置提示文字,分数,倒计时
 	private setupReminder() {
 		//分数提示
-		this._scoreLabel = new egret.TextField();
-		this._scoreLabel.x = 0;
-		this._scoreLabel.y = 20;
-		this._scoreLabel.width = this.stage.stageWidth;
-		this._scoreLabel.height = 55;
-        this._scoreLabel.textColor = 0xFF0000;
-		this._scoreLabel.textAlign =  egret.HorizontalAlign.CENTER;
-        this._scoreLabel.size = 30;
-        this._scoreLabel.text = "您已经走了" + this._score + "米";
-        this.addChild(this._scoreLabel);
+		this._scoreTF = new egret.TextField();
+		this._scoreTF.x = this.stage.stageWidth*0.25;
+		this._scoreTF.y = 20;
+		this._scoreTF.width = this.stage.stageWidth*0.5;
+		this._scoreTF.height = 55;
+        this._scoreTF.textColor = 0xFF0000;
+		this._scoreTF.textAlign =  egret.HorizontalAlign.CENTER;
+        this._scoreTF.size = 30;
+        this._scoreTF.text = "您已经走了" + this._score + "米";
+        this.addChild(this._scoreTF);
+
+		//单词提示
+		this._wordTF = new egret.TextField();
+		this._wordTF.x = this.stage.stageWidth*0.25;
+		this._wordTF.y = 100;
+		this._wordTF.width = this.stage.stageWidth*0.5;
+		this._wordTF.height = 55;
+        this._wordTF.textColor = 0xFFFFFF;
+		this._wordTF.textAlign =  egret.HorizontalAlign.CENTER;
+        this._wordTF.size = 50;
+        this._wordTF.text = "";
+        this.addChild(this._wordTF);
 
 		//倒计时提示
+		this._scendsTF = new egret.TextField();
+		this._scendsTF.x = this.stage.stageWidth*0.75;
+		this._scendsTF.y = 20;
+		this._scendsTF.width = this.stage.stageWidth*0.25;
+		this._scendsTF.height = 55;
+    	this._scendsTF.fontFamily = "Microsoft YaHei"
+        this._scendsTF.textColor = 0xff6c14;
+		this._scendsTF.textAlign =  egret.HorizontalAlign.CENTER;
+        this._scendsTF.size = 50;
+        this._scendsTF.text = this._scends + "秒";
+        this.addChild(this._scendsTF);
+
+		//游戏计时器
+		this._gameTimer = new egret.Timer(1000, this._scends);
+        this._gameTimer.addEventListener(egret.TimerEvent.TIMER, this.gameTimerFunc, this);
+        this._gameTimer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.gameTimerCompleteFunc, this);
+        this._gameTimer.start();
+
+		let sound = new egret.Sound();
+		sound.addEventListener(egret.Event.COMPLETE, function() {
+			this._backgroundChannel = sound.play(0,0);
+			this._backgroundChannel.volume = 0.7;
+		}, this);
+		sound.load("resource/sound/bg.mp3");
 
 
 		//指示箭头提示
@@ -167,6 +207,29 @@ class Game extends egret.DisplayObjectContainer {
 		this._guideArrow.width = 0;
 		this._guideArrow.height = 0;
 		// this.addChild(this._guideArrow);
+	}
+
+	//每秒计时
+	private gameTimerFunc () {
+		this._scends--;
+        this._scendsTF.text = this._scends + "秒";
+
+		//剩5秒时播放倒计时音乐
+		 if (this._scends == 5) {
+         	let sound = new egret.Sound();
+			sound.addEventListener(egret.Event.COMPLETE, function() {
+        		this._countdownChannel = sound.play(0,0);
+			}, this);
+			sound.load("resource/sound/countdown.mp3");
+        }
+	}
+
+
+	//计时完成 游戏结束
+	private gameTimerCompleteFunc () {
+        if (this._countdownChannel) this._countdownChannel.stop();
+		if (this._backgroundChannel) this._backgroundChannel.stop();
+		if (this._gameTimer) this._gameTimer.stop();
 	}
 
 	//添加触摸事件
@@ -208,7 +271,6 @@ class Game extends egret.DisplayObjectContainer {
 		//控制点超出屏幕时容错
 		if(event.localY < 0) {
 			this._touchMoveToY = 0;
-			console.log("超出屏幕");
 		}
 
 		//计算触摸点移动到的坐标
@@ -320,11 +382,28 @@ class Game extends egret.DisplayObjectContainer {
 
 					this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
 					this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+
+					this.gameTimerCompleteFunc();
 				}
+
+				//掉下去的声音
+				let sound = new egret.Sound();
+				sound.addEventListener(egret.Event.COMPLETE, function() {
+					let channel:egret.SoundChannel = sound.play(0,1);
+				}, this);
+				sound.load("resource/sound/down.mp3");
+
 			}
 			//动画结束后重新添加交互事件 (未发生碰撞)
 			this.addTouchEvent();
 		}, this);
+
+		//弹跳时的声音
+		let sound = new egret.Sound();
+		sound.addEventListener(egret.Event.COMPLETE, function() {
+			let channel:egret.SoundChannel = sound.play(0,1);
+		}, this);
+		sound.load("resource/sound/jump.mp3");
 	}
 
 	//二次贝塞尔曲线的缓动动画实现方式
@@ -339,7 +418,6 @@ class Game extends egret.DisplayObjectContainer {
 		this.checkHit();
 	}
 
-
 	//碰撞检测
 	private checkHit() {
 
@@ -350,12 +428,19 @@ class Game extends egret.DisplayObjectContainer {
 
 			if(_isHit) {
 				this.hitAction(index);
-			}
+			} 
 		}	
 	}
 
 	//发生碰撞
 	private hitAction(hitIndex:number) {
+
+		//碰撞时的声音
+		// let sound = new egret.Sound();
+		// sound.addEventListener(egret.Event.COMPLETE, function() {
+		// 	let channel:egret.SoundChannel = sound.play(0,1);
+		// }, this);
+		// sound.load("resource/sound/down.mp3");
 
 		//清除历史箭头
 		if(this._historyArrow && this._historyArrow.parent) {
@@ -380,7 +465,7 @@ class Game extends egret.DisplayObjectContainer {
 
 		//移动米数
 		this._score += Math.round(moveLen/100);
-		this._scoreLabel.text = "您已经走了" + this._score + "米";
+		this._scoreTF.text = "您已经走了" + this._score + "米";
 
 		//遍历数组 改变台阶x值
 		for(let j = 0; j < this._stepsArray.length; j++ ) {
@@ -481,20 +566,16 @@ class Game extends egret.DisplayObjectContainer {
 
 		this._letterArray.splice(0, this._hitIndex);
 
-				
-
-
 		//移动之后重新添加交互事件
 		this.addTouchEvent();
 	}
 
-	private letterString = "";
 	private addLetter(letter:string) {
 
-		this.letterString += letter;
-		console.log("吃到的单词 = " + this.letterString);
+		this._wordTF.text += letter;
 
-		if(this.letterString === "good"){
+		if(this._wordTF.text == "good"){
+			
 			//加速动画
 			let speed = new SpeedMotion();
 			this.addChild(speed);
@@ -503,13 +584,16 @@ class Game extends egret.DisplayObjectContainer {
 			let timer: egret.Timer = new egret.Timer(300, 1);
 			timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
 				this._score += 50;
-				this._scoreLabel.text = "您已经走了" + this._score + "米";
+				this._scoreTF.text = "您已经走了" + this._score + "米";
+				this._wordTF.text = "";
 			},this);
 			timer.start();
 
 
-			//后边单词要重置
-			// this.hitAction(5);
+			//加速后单词要重置
+			//遍历当前所有台阶 删除后边台阶的单词数组,UI
+
+			//新建单词UI
 
 		}
 
@@ -538,5 +622,6 @@ class Game extends egret.DisplayObjectContainer {
 	private getWords() {
 		this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
+		
 	}
 }

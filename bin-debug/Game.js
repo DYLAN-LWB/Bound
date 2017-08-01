@@ -10,42 +10,32 @@ var Game = (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
-        //UI
+        //USER
         //public
         _this._totalStepCount = 5; //台阶数量
-        _this._stepsArray = []; //阶梯数组
-        //每次创建台阶都要删除前边的字母
-        _this._letterArray = ["g", "o", "o", "d", "a", "p", "p", "l", "e", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-        _this._letterTFArray = []; //字母textfield
-        _this._letterImgArray = []; //字母图片数组
-        _this._lifeCount = 3111; //x条命
+        _this._lifeCount = 1; //x条命
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
-        //object
-        _this._person = _this.createBitmapByName("beibei_png"); //弹跳对象
-        _this._personWH = 80; //对象宽高
-        _this._personBeginPoint = new egret.Point(0, 0); //对象出发点
-        _this._personTopY = 350;
-        //touch and line
-        _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
-        _this._guideLine = new egret.Shape(); //线条引导
-        _this._guideArrow = _this.createBitmapByName("ladder_png"); //箭头引导
-        _this._historyArrow = _this.createBitmapByName("ladder_png"); //上次箭头引导轨迹
-        _this._guideMaxLength = 150; //箭头的最大长度
-        //hit
-        _this._isHit = false; //如果未碰撞到,恢复对象位置
         _this._scends = 180; //游戏默认180秒
         _this._score = 0; //走的总米数
-        _this._isGameOver = true;
+        _this._isGameOver = true; //游戏是否结束
+        _this._stepsArray = []; //阶梯数组
+        _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
+        _this._letterTFArray = []; //字母textfield
+        _this._letterImgArray = []; //字母图片数组
+        _this._person = new Bitmap("beibei_png"); //弹跳对象
+        _this._personBeginPoint = new egret.Point(0, 0); //对象出发点
+        _this._personTopY = 350; //对象的Y值,控制弹跳对象和台阶
+        _this._personWH = 80; //对象宽高
+        _this._guideLine = new egret.Shape(); //线条引导
+        _this._guideArrow = new Bitmap("ladder_png"); //箭头引导
+        _this._historyArrow = new Bitmap("ladder_png"); //上次箭头引导轨迹
+        _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
+        _this._guideMaxLength = 150; //箭头的最大长度
+        _this._isHit = false; //如果未碰撞到,恢复对象位置
         _this.letterString = "";
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
     }
-    Game.prototype.createBitmapByName = function (name) {
-        var result = new egret.Bitmap();
-        var texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
-    };
     Game.prototype.onAddToStage = function (event) {
         //游戏背景
         var _gameBackground = new GameBackground(this.stage.stageWidth, this.stage.stageHeight);
@@ -64,7 +54,7 @@ var Game = (function (_super) {
     //设置台阶
     Game.prototype.setupSteps = function () {
         //第一个台阶特殊 手动创建
-        var firstStep = this.createBitmapByName("ladder_png");
+        var firstStep = new Bitmap("ladder_png");
         firstStep.width = 120;
         firstStep.height = 25;
         firstStep.y = this._personTopY + this._personWH;
@@ -77,7 +67,7 @@ var Game = (function (_super) {
         //添加台阶
         for (var i = 0; i < this._totalStepCount; i++) {
             //创建台阶
-            var _step = this.createBitmapByName("ladder_png");
+            var _step = new Bitmap("ladder_png");
             _step.width = 120;
             _step.height = 25;
             _step.y = this._personTopY + this._personWH;
@@ -99,7 +89,7 @@ var Game = (function (_super) {
             //添加到字母数组
             this._letterTFArray.push(_letterTF);
             //添加字母图片
-            var _letterImg = this.createBitmapByName("letter_json." + _letterTF.text);
+            var _letterImg = new Bitmap("letter_json." + _letterTF.text);
             _letterImg.width = 40;
             _letterImg.height = 40;
             _letterImg.y = _step.y - 40;
@@ -137,7 +127,7 @@ var Game = (function (_super) {
         this.addChild(this._scoreLabel);
         //倒计时提示
         //指示箭头提示
-        this._guideArrow = this.createBitmapByName("ladder_png");
+        this._guideArrow = new Bitmap("ladder_png");
         this._guideArrow.y = this._personBeginPoint.y;
         this._guideArrow.x = this._personBeginPoint.x;
         this._guideArrow.width = 0;
@@ -257,12 +247,12 @@ var Game = (function (_super) {
                 this._lifeCount -= 1;
                 if (this._lifeCount == 0) {
                     // _normalAlert("game over");
-                    this._normalAlert = new ScoreAlert(ScoreAlert.GamePageScore, "111", "11", "333", 123, this.stage.stageHeight);
+                    this._normalAlert = new Alert(Alert.GamePageScore, "111", "11", "333", 123, this.stage.stageHeight);
                     this._normalAlert.x = 0;
                     this._normalAlert.y = 0;
                     this.addChild(this._normalAlert);
-                    this._normalAlert.addEventListener(RankingEvent.DATE, this.gotoRankinglist, this);
-                    this._normalAlert.addEventListener(RestartEvent.DATE, this.getReastGame, this);
+                    this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+                    this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
                 }
             }
             //动画结束后重新添加交互事件 (未发生碰撞)
@@ -310,7 +300,7 @@ var Game = (function (_super) {
         //拿到目标台阶上的字母
         if (hitIndex > 0) {
             var wordTF = this._letterTFArray[hitIndex - 1];
-            this.eatLetter(wordTF.text);
+            this.addLetter(wordTF.text);
         }
         //移动米数
         this._score += Math.round(moveLen / 100);
@@ -364,7 +354,7 @@ var Game = (function (_super) {
         var _frontX = _lastStep.x;
         //末尾添加台阶index
         for (var i = 0; i < this._hitIndex; i++) {
-            var _step = this.createBitmapByName("ladder_png");
+            var _step = new Bitmap("ladder_png");
             _step.y = this._personTopY + this._personWH;
             _step.x = _frontX + _step.width + Math.random() * 300;
             _step.width = 120;
@@ -386,7 +376,7 @@ var Game = (function (_super) {
             //添加到字母数组
             this._letterTFArray.push(_letterTF);
             //添加字母图片
-            var _letterImg = this.createBitmapByName("letter_json." + _letterTF.text);
+            var _letterImg = new Bitmap("letter_json." + _letterTF.text);
             _letterImg.width = 40;
             _letterImg.height = 40;
             _letterImg.y = _step.y - 40;
@@ -399,10 +389,10 @@ var Game = (function (_super) {
         //移动之后重新添加交互事件
         this.addTouchEvent();
     };
-    Game.prototype.eatLetter = function (letter) {
+    Game.prototype.addLetter = function (letter) {
         this.letterString += letter;
         console.log("吃到的单词 = " + this.letterString);
-        if (this.letterString === "good15") {
+        if (this.letterString === "good") {
             //加速动画
             var speed = new SpeedMotion();
             this.addChild(speed);
@@ -416,19 +406,23 @@ var Game = (function (_super) {
         }
     };
     //游戏结束alert-查看排名
-    Game.prototype.gotoRankinglist = function () {
-        this.removeChild(this._normalAlert);
+    Game.prototype.checkRanking = function () {
+        console.log("game checkRanking");
+        // this.removeChild(this._normalAlert);
         // window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this.timenum + "/activitynum/" + this.activitynum + "/vuid/" + this._vuid + "/key/" + this._key + "/isfrom/" + this.isfrom;
     };
     //游戏结束alert-重玩
-    Game.prototype.getReastGame = function () {
+    Game.prototype.restartGame = function () {
+        console.log("game restartGame");
         // this.removeChildren();
         // this._scends = 180;
         // this.Score = 0;
         // this._isGameOver = true;
         // this.downNum(this._vuid, this._key);
     };
+    //请求单词接口
     Game.prototype.getWords = function () {
+        this._letterArray = ["g", "o", "o", "d", "a", "p", "p", "l", "e", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
     };
     return Game;
 }(egret.DisplayObjectContainer));

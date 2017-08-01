@@ -1,36 +1,37 @@
 /***
  *弹窗对话框
  */
-class ScoreAlert extends egret.Sprite {
-    public static HomePageShare = 1;
-    public static GamePageScore = 2;
-    public static GamePageShare = 3;
+class Alert extends egret.Sprite {
+    public static HomePageShare = 1;    //首页分享
+    public static GamePageScore = 2;    //游戏结束
+    public static GamePageShare = 3;    //游戏页面分享
     private type;//1:首页分享获取次数的对话框；2:游戏结束的重玩的对话框 3:游戏结束获取次数的对话框;4:请先登录弹窗
     private score;
     private highScore;
     private ranking;
     private descstate;
     private screenwith;
+    
     public constructor(type:number, score:string, highScore:string, ranking:string,descstate:number,screenwith:number) {
         super();
         this.type = type;
         this.score = score;
         this.highScore = highScore;
         this.ranking = ranking;
-        this.descstate=descstate;
-        this.screenwith=screenwith;
+        this.descstate = descstate;
+        this.screenwith = screenwith;
         this.initView();
     }
 
     public initView() {
-        var bg = this.createBitmapByName("alert_bg");
+        var bg = new Bitmap("alert_bg");
         bg.height = this.screenwith;
         this.addChild(bg);
 
 
         switch (this.type) {
             case 1:
-                var alertbg = this.createBitmapByName("gamebody_json.prompt_03");
+                var alertbg = new Bitmap("gamebody_json.prompt_03");
                 this.addChild(alertbg);
                 alertbg.x = 370;
                 alertbg.y = 480;
@@ -51,7 +52,7 @@ class ScoreAlert extends egret.Sprite {
                 dec.anchorOffsetY = dec.height / 2;
                 this.addChild(dec);
 
-                var canclebt = this.createBitmapByName("gamebody_json.btn_03");
+                var canclebt = new Bitmap("gamebody_json.btn_03");
                 this.addChild(canclebt);
                 canclebt.x = 230;
                 canclebt.y = 610;
@@ -60,7 +61,7 @@ class ScoreAlert extends egret.Sprite {
                 canclebt.touchEnabled = true;
                 canclebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
 
-                var sharebt = this.createBitmapByName("gamebody_json.btn_05");
+                var sharebt = new Bitmap("gamebody_json.btn_05");
                 this.addChild(sharebt);
                 sharebt.x = 510;
                 sharebt.y = 610;
@@ -70,28 +71,28 @@ class ScoreAlert extends egret.Sprite {
                 sharebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.shareGame, this);
                 break;
             case 2:
-                var gameover = this.createBitmapByName("gamebody_json.tan");
+                var gameover = new Bitmap("gamebody_json.tan");
                 this.addChild(gameover);
                 gameover.x = 370;
                 gameover.y = 480;
                 gameover.anchorOffsetX = gameover.width / 2;
                 gameover.anchorOffsetY = gameover.height / 2;
                 if(this.descstate==1){
-                var text = new egret.TextField();
-                text.x = 140;
-                text.y = 380;
-                text.size = 32;
-                text.fontFamily = "Microsoft YaHei"
-                text.verticalAlign = egret.VerticalAlign.BOTTOM;
-                text.textFlow = <Array<egret.ITextElement>>[
-                    {
-                        text: "防作弊系统检测:",
-                        style: {"textColor": 0x7a2c47, "size": 22}
-                    },
-                    {text: "成绩无效,如有问题,请联系客服", style: {"textColor": 0xff1e00, "size": 22}}
-                ];
-                text.anchorOffsetY = text.height / 2;
-                this.addChild(text);
+                    var text = new egret.TextField();
+                    text.x = 140;
+                    text.y = 380;
+                    text.size = 32;
+                    text.fontFamily = "Microsoft YaHei"
+                    text.verticalAlign = egret.VerticalAlign.BOTTOM;
+                    text.textFlow = <Array<egret.ITextElement>>[
+                        {
+                            text: "防作弊系统检测:",
+                            style: {"textColor": 0x7a2c47, "size": 22}
+                        },
+                        {text: "成绩无效,如有问题,请联系客服", style: {"textColor": 0xff1e00, "size": 22}}
+                    ];
+                    text.anchorOffsetY = text.height / 2;
+                    this.addChild(text);
                 }
 
                 var score = new egret.TextField();
@@ -129,10 +130,7 @@ class ScoreAlert extends egret.Sprite {
                 ranking.anchorOffsetY = ranking.height / 2;
                 this.addChild(ranking);
 
-
-
-
-                var rankings = this.createBitmapByName("gamebody_json.list");
+                var rankings = new Bitmap("gamebody_json.list");
                 this.addChild(rankings);
                 rankings.x = 230;
                 rankings.y = 610;
@@ -141,7 +139,7 @@ class ScoreAlert extends egret.Sprite {
                 rankings.touchEnabled = true;
                 rankings.addEventListener(egret.TouchEvent.TOUCH_TAP, this.gotoRanking, this);
 
-                var reastgame = this.createBitmapByName("gamebody_json.return");
+                var reastgame = new Bitmap("gamebody_json.return");
                 this.addChild(reastgame);
                 reastgame.x = 510;
                 reastgame.y = 610;
@@ -151,7 +149,7 @@ class ScoreAlert extends egret.Sprite {
                 reastgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.reastGame, this);
                 break;
             case 3:
-                var alertbggame = this.createBitmapByName("gamebody_json.prompt_03");
+                var alertbggame = new Bitmap("gamebody_json.prompt_03");
                 this.addChild(alertbggame);
                 alertbggame.x = 370;
                 alertbggame.y = 480;
@@ -172,7 +170,7 @@ class ScoreAlert extends egret.Sprite {
                 decgame.anchorOffsetY = decgame.height / 2;
                 this.addChild(decgame);
 
-                var canclebtgame = this.createBitmapByName("gamebody_json.btn_03");
+                var canclebtgame = new Bitmap("gamebody_json.btn_03");
                 this.addChild(canclebtgame);
                 canclebtgame.x = 230;
                 canclebtgame.y = 610;
@@ -180,7 +178,7 @@ class ScoreAlert extends egret.Sprite {
                 canclebtgame.anchorOffsetY = canclebtgame.height / 2;
                 canclebtgame.touchEnabled = true;
                 canclebtgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
-                var sharebtgame = this.createBitmapByName("gamebody_json.btn_05");
+                var sharebtgame = new Bitmap("gamebody_json.btn_05");
                 this.addChild(sharebtgame);
                 sharebtgame.x = 510;
                 sharebtgame.y = 610;
@@ -192,24 +190,25 @@ class ScoreAlert extends egret.Sprite {
         }
     }
 
+
     public gotoRanking() {
-        var rankingevent:RankingEvent = new RankingEvent(RankingEvent.DATE);
-        this.dispatchEvent(rankingevent);
+        let event:AlertEvent = new AlertEvent(AlertEvent.Ranking);
+        this.dispatchEvent(event);
     }
 
     public reastGame() {
-        var restartevent:RestartEvent = new RestartEvent(RestartEvent.DATE);
-        this.dispatchEvent(restartevent);
+        let event:AlertEvent = new AlertEvent(AlertEvent.Restart);
+        this.dispatchEvent(event);
     }
 
     public shareGame() {
-        var daterEvent:AlertEvent = new AlertEvent(AlertEvent.DATE);
-        this.dispatchEvent(daterEvent);
+        let event:AlertEvent = new AlertEvent(AlertEvent.Share);
+        this.dispatchEvent(event);
     }
 
     public cancleShareGame() {
-        var cancleEvent:CancleEvent = new CancleEvent(CancleEvent.DATE);
-        this.dispatchEvent(cancleEvent);
+        let event:AlertEvent = new AlertEvent(AlertEvent.Cancle);
+        this.dispatchEvent(event);
     }
 
     private createBitmapByName(name:string) {

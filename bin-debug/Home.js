@@ -34,7 +34,7 @@ var Home = (function (_super) {
         //     this.stage.setContentSize(750,1218);
         // }
         //设置背景
-        var homeBackground = this.createBitmapByName("bg_png");
+        var homeBackground = new Bitmap("bg_png");
         homeBackground.width = this.stage.stageWidth;
         this.addChild(homeBackground);
         //获取用户相关信息
@@ -71,38 +71,38 @@ var Home = (function (_super) {
             this._playNumText.text = "您当前有0次挑战机会";
             this.addChild(this._playNumText);
             //开始游戏按钮
-            this._startButton = this.createBitmapByName("gamebody_json.start");
+            this._startButton = new Bitmap("gamebody_json.start");
             this._startButton.x = 180;
             this._startButton.y = 820;
             this._startButton.touchEnabled = true;
             this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startTheGame, this);
             this.addChild(this._startButton);
             //查看排名按钮
-            this._rankButton = this.createBitmapByName("gamebody_json.ranking");
+            this._rankButton = new Bitmap("gamebody_json.ranking");
             this._rankButton.x = 180;
             this._rankButton.y = 990;
             this._rankButton.touchEnabled = true;
-            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkTheRanking, this);
+            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
         }
         else if (parseInt(this._isfrom) == 1) {
             //app端 页面简化
-            this._startButton = this.createBitmapByName("gamebody_json.start");
+            this._startButton = new Bitmap("gamebody_json.start");
             this._startButton.x = 180;
             this._startButton.y = 760;
             this._startButton.touchEnabled = true;
             this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startTheGame, this);
             this.addChild(this._startButton);
-            this._rankButton = this.createBitmapByName("gamebody_json.ranking");
+            this._rankButton = new Bitmap("gamebody_json.ranking");
             this._rankButton.x = 180;
             this._rankButton.y = 910;
             this._rankButton.touchEnabled = true;
-            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkTheRanking, this);
+            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
         }
     };
     //查看排名
-    Home.prototype.checkTheRanking = function (evt) {
+    Home.prototype.checkRanking = function (evt) {
         window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._timenum + "/activitynum/" + this._activitynum + "/vuid/" + this._vuid + "/key/" + this._key + "/isfrom/" + this._isfrom;
     };
     //开始游戏
@@ -123,13 +123,6 @@ var Home = (function (_super) {
             var _game = new Game();
             this.addChild(_game);
         }
-    };
-    //创建图片Bitmap
-    Home.prototype.createBitmapByName = function (name) {
-        var result = new egret.Bitmap();
-        var texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
     };
     Home.prototype.getUserInfo = function () {
         this._pageUrl = "https://www.beisu100.com/actity/80001/index.html?uid=318&key=d7318727e22014ac71f7631652315fe7&isfrom=0&activitynum=8&timenum=1";
@@ -216,13 +209,13 @@ var Home = (function (_super) {
                 this.addChild(_game);
             }
             else {
-                this._commonAlert = new ScoreAlert(ScoreAlert.HomePageShare, "", "", "", 0, this.stage.stageHeight);
+                this._commonAlert = new Alert(Alert.HomePageShare, "", "", "", 0, this.stage.stageHeight);
                 this._commonAlert.x = 0;
                 this._commonAlert.y = 0;
                 this.addChild(this._commonAlert);
                 //设置自定义alert监听
-                this._commonAlert.addEventListener(AlertEvent.DATE, this.alertShareGame, this);
-                this._commonAlert.addEventListener(CancleEvent.DATE, this.cancleAlert, this);
+                this._commonAlert.addEventListener(AlertEvent.Share, this.alertShareGame, this);
+                this._commonAlert.addEventListener(AlertEvent.Cancle, this.cancleAlert, this);
             }
         }
         else if (result["code"] == 2) {
@@ -248,7 +241,7 @@ var Home = (function (_super) {
     //引导分享
     Home.prototype.alertShareGame = function () {
         this.removeChild(this._commonAlert);
-        this._shareGuide = this.createBitmapByName("shareGui_png");
+        this._shareGuide = new Bitmap("shareGui_png");
         this._shareGuide.touchEnabled = true;
         this._shareGuide.width = this.stage.stageWidth;
         this._shareGuide.addEventListener(egret.TouchEvent.TOUCH_TAP, this.hiddeguid, this);
@@ -279,7 +272,7 @@ var Home = (function (_super) {
                 var isend = result["data"]["isend"];
                 if (isend != 0) {
                     this.removeChild(this._startButton);
-                    this._overButton = this.createBitmapByName("gamebody_json.ending");
+                    this._overButton = new Bitmap("gamebody_json.ending");
                     this._overButton.x = 180;
                     this._overButton.y = 860;
                     this._overButton.touchEnabled = true;

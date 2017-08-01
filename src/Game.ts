@@ -1,63 +1,51 @@
 class Game extends egret.DisplayObjectContainer {
 
-	//UI
+	//USER
+
 	//public
-	private _totalStepCount:number = 5;	//台阶数量
-	private _stepsArray = [];	//阶梯数组
-	//每次创建台阶都要删除前边的字母
-	private _letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-	private _letterTFArray = []; //字母textfield
-	private _letterImgArray = [];	//字母图片数组
-	private _lifeCount = 3111;	//x条命
-	private _stepBeginX:number = 200; //初始x值 (台阶中心点为准)
+	private _totalStepCount = 5;			//台阶数量
+	private _lifeCount = 1;				//x条命
+	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
+	private _gameTimer;						//游戏倒计时计时器
+    private _scends = 180;					//游戏默认180秒
+	private _score = 0;						//走的总米数
+	private _scoreLabel: egret.TextField;	//米数文字
+	private _isGameOver = true;				//游戏是否结束
+	private _hitIndex:number;				//碰撞到的台阶,在当前台阶数组的index
 
-	private _normalAlert: ScoreAlert;
-	private _hitIndex:number;	//碰撞到的台阶,在当前台阶数组的index
+	private _stepsArray = [];			//阶梯数组
+	private _letterArray = [];			//字母数组只在每次新增台阶之后删除对象数量的字母
+	private _letterTFArray = []; 		//字母textfield
+	private _letterImgArray = [];		//字母图片数组
 
+	private _normalAlert: Alert;	//弹窗提示
 
+	private _person = new Bitmap("beibei_png");	//弹跳对象
+	private _personBeginPoint = new egret.Point(0,0);			//对象出发点
+	private _personTopY = 350;		//对象的Y值,控制弹跳对象和台阶
+	private _personWH = 80;			//对象宽高
 
-	//object
-	private _person = this.createBitmapByName("beibei_png");	//弹跳对象
-	private _personWH:number = 80;	//对象宽高
-	private _personBeginPoint = new egret.Point(0,0);	//对象出发点
-	private _personTopY = 350;
+	private _guideLine:egret.Shape = new egret.Shape();				//线条引导
+	private _guideArrow = new Bitmap("ladder_png");	//箭头引导
+	private _historyArrow = new Bitmap("ladder_png");	//上次箭头引导轨迹
 
-	//touch and line
 	private _touchBeginPoint = new egret.Point(0,0);	//开始触摸的点
-	private _guideLine:egret.Shape = new egret.Shape();	//线条引导
-	private _guideArrow = this.createBitmapByName("ladder_png");	//箭头引导
-	private _historyArrow = this.createBitmapByName("ladder_png");	//上次箭头引导轨迹
-	private _touchMoveToX: number;	//X坐标将要移动到的位置
-	private _touchMoveToY: number;	//Y坐标将要移动到的位置
-	private _guideMaxLength: number = 150;	//箭头的最大长度
-	private _guideTruthLength: number;		//箭头实际长度
+	private _touchMoveToX: number;						//X坐标将要移动到的位置
+	private _touchMoveToY: number;						//Y坐标将要移动到的位置
+	private _guideMaxLength = 150;						//箭头的最大长度
+	private _guideTruthLength: number;					//箭头实际长度
 
-	//bessel
-	private _pathHighX: number;	//运动到最高点的x坐标
-	private _pathHighY: number;	//运动到最高点的y坐标
+	private _pathHighX: number;		//运动到最高点的x坐标
+	private _pathHighY: number;		//运动到最高点的y坐标
 
-	//hit
 	private _isHit: boolean = false;	//如果未碰撞到,恢复对象位置
 
-
-	//DATA
-	private _gameTimer;	//游戏倒计时
-    private _scends = 180;	//游戏默认180秒
-	private _score:number = 0;	//走的总米数
-	private _scoreLabel: egret.TextField;	//米数文字
-	private _isGameOver = true;
 
 	public constructor() {
         super();
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
 
-	private createBitmapByName(name: string) {
-        let result = new egret.Bitmap();
-        let texture: egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
-    }
 
     private onAddToStage(event: egret.Event) {
 
@@ -84,7 +72,7 @@ class Game extends egret.DisplayObjectContainer {
 	//设置台阶
 	private setupSteps() {
 		//第一个台阶特殊 手动创建
-		let firstStep = this.createBitmapByName("ladder_png");
+		let firstStep = new Bitmap("ladder_png");
 		firstStep.width = 120;
 		firstStep.height = 25;
 		firstStep.y = this._personTopY + this._personWH;
@@ -101,7 +89,7 @@ class Game extends egret.DisplayObjectContainer {
 		for(let i = 0; i < this._totalStepCount; i++) {
 
 			//创建台阶
-			let _step = this.createBitmapByName("ladder_png");
+			let _step = new Bitmap("ladder_png");
             _step.width = 120;
             _step.height = 25;
 			_step.y = this._personTopY + this._personWH;
@@ -128,7 +116,7 @@ class Game extends egret.DisplayObjectContainer {
 			this._letterTFArray.push(_letterTF);
 
 			//添加字母图片
-			let _letterImg = this.createBitmapByName("letter_json." + _letterTF.text);
+			let _letterImg = new Bitmap("letter_json." + _letterTF.text);
             _letterImg.width = 40;
             _letterImg.height = 40;
 			_letterImg.y = _step.y - 40;
@@ -137,8 +125,6 @@ class Game extends egret.DisplayObjectContainer {
 
 			//添加到字母图片数组
 			this._letterImgArray.push(_letterImg);
-
-
 		}
 		//每次添加台阶都要删除对应数量的字母
 		this._letterArray.splice(0, this._totalStepCount);
@@ -175,7 +161,7 @@ class Game extends egret.DisplayObjectContainer {
 
 
 		//指示箭头提示
-		this._guideArrow = this.createBitmapByName("ladder_png");
+		this._guideArrow = new Bitmap("ladder_png");
 		this._guideArrow.y = this._personBeginPoint.y;
 		this._guideArrow.x = this._personBeginPoint.x;
 		this._guideArrow.width = 0;
@@ -326,12 +312,14 @@ class Game extends egret.DisplayObjectContainer {
 
 				if(this._lifeCount == 0) {
 					// _normalAlert("game over");
-					this._normalAlert = new ScoreAlert(ScoreAlert.GamePageScore, "111","11", "333",123,this.stage.stageHeight);
+					this._normalAlert = new Alert(Alert.GamePageScore, "111","11", "333",123,this.stage.stageHeight);
+			
 					this._normalAlert.x = 0;
 					this._normalAlert.y = 0;
 					this.addChild(this._normalAlert);
-					this._normalAlert.addEventListener(RankingEvent.DATE, this.gotoRankinglist, this);
-					this._normalAlert.addEventListener(RestartEvent.DATE, this.getReastGame, this);
+
+					this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+					this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
 				}
 			}
 			//动画结束后重新添加交互事件 (未发生碰撞)
@@ -387,7 +375,7 @@ class Game extends egret.DisplayObjectContainer {
 		//拿到目标台阶上的字母
 		if(hitIndex > 0) {
 			let wordTF= this._letterTFArray[hitIndex-1];
-			this.eatLetter(wordTF.text);
+			this.addLetter(wordTF.text);
 		}
 
 		//移动米数
@@ -453,7 +441,7 @@ class Game extends egret.DisplayObjectContainer {
 		let _frontX = _lastStep.x;
 		//末尾添加台阶index
 		for(let i = 0; i < this._hitIndex; i++ ) {
-			let _step = this.createBitmapByName("ladder_png");
+			let _step = new Bitmap("ladder_png");
 			_step.y = this._personTopY + this._personWH;
 			_step.x = _frontX + _step.width +  Math.random()*300;
 			_step.width = 120;
@@ -480,7 +468,7 @@ class Game extends egret.DisplayObjectContainer {
 			this._letterTFArray.push(_letterTF);
 
 			//添加字母图片
-			let _letterImg = this.createBitmapByName("letter_json." + _letterTF.text);
+			let _letterImg = new Bitmap("letter_json." + _letterTF.text);
             _letterImg.width = 40;
             _letterImg.height = 40;
 			_letterImg.y = _step.y - 40;
@@ -501,12 +489,12 @@ class Game extends egret.DisplayObjectContainer {
 	}
 
 	private letterString = "";
-	private eatLetter(letter:string) {
+	private addLetter(letter:string) {
 
 		this.letterString += letter;
 		console.log("吃到的单词 = " + this.letterString);
 
-		if(this.letterString === "good15"){
+		if(this.letterString === "good"){
 			//加速动画
 			let speed = new SpeedMotion();
 			this.addChild(speed);
@@ -528,13 +516,17 @@ class Game extends egret.DisplayObjectContainer {
 	}
 
 	//游戏结束alert-查看排名
-	public gotoRankinglist() {
-        this.removeChild(this._normalAlert);
+	public checkRanking() {
+		console.log("game checkRanking");
+
+        // this.removeChild(this._normalAlert);
         // window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this.timenum + "/activitynum/" + this.activitynum + "/vuid/" + this._vuid + "/key/" + this._key + "/isfrom/" + this.isfrom;
     }
 
 	//游戏结束alert-重玩
-    public getReastGame() {
+    public restartGame() {
+
+		console.log("game restartGame");
         // this.removeChildren();
         // this._scends = 180;
         // this.Score = 0;
@@ -542,7 +534,9 @@ class Game extends egret.DisplayObjectContainer {
         // this.downNum(this._vuid, this._key);
     }
 
+	//请求单词接口
 	private getWords() {
+		this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 
 	}
 }

@@ -8,17 +8,15 @@ var game_file_list = [
 	"libs/modules/res/res.js",
 	"libs/modules/tween/tween.js",
 	"polyfill/promise.js",
-	"bin-debug/Alert/CancleEvent.js",
 	"bin-debug/Game.js",
-	"bin-debug/Alert/RankingEvent.js",
-	"bin-debug/Alert/RestartEvent.js",
-	"bin-debug/Alert/ScoreAlert.js",
-	"bin-debug/Alert/AlertEvent.js",
 	"bin-debug/GameBackground.js",
 	"bin-debug/GameSpeedMotion.js",
 	"bin-debug/Home.js",
-	"bin-debug/LoadingUI.js",
-	"bin-debug/Main.js",
+	"bin-debug/Public/Alert.js",
+	"bin-debug/Public/AlertEvent.js",
+	"bin-debug/Public/Bitmap.js",
+	"bin-debug/System/LoadingUI.js",
+	"bin-debug/System/Main.js",
 	//----auto game_file_list end----
 ];
 

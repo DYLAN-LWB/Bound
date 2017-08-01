@@ -15,6 +15,9 @@ var AlertEvent = (function (_super) {
     }
     return AlertEvent;
 }(egret.Event));
-AlertEvent.DATE = "AlertEvent";
+AlertEvent.Share = "share";
+AlertEvent.Ranking = "ranking";
+AlertEvent.Restart = "restart";
+AlertEvent.Cancle = "cancle";
 __reflect(AlertEvent.prototype, "AlertEvent");
 //# sourceMappingURL=AlertEvent.js.map

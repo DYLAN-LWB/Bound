@@ -9,9 +9,9 @@ var __extends = (this && this.__extends) || function (d, b) {
 /***
  *弹窗对话框
  */
-var ScoreAlert = (function (_super) {
-    __extends(ScoreAlert, _super);
-    function ScoreAlert(type, score, highScore, ranking, descstate, screenwith) {
+var Alert = (function (_super) {
+    __extends(Alert, _super);
+    function Alert(type, score, highScore, ranking, descstate, screenwith) {
         var _this = _super.call(this) || this;
         _this.type = type;
         _this.score = score;
@@ -22,13 +22,13 @@ var ScoreAlert = (function (_super) {
         _this.initView();
         return _this;
     }
-    ScoreAlert.prototype.initView = function () {
-        var bg = this.createBitmapByName("alert_bg");
+    Alert.prototype.initView = function () {
+        var bg = new Bitmap("alert_bg");
         bg.height = this.screenwith;
         this.addChild(bg);
         switch (this.type) {
             case 1:
-                var alertbg = this.createBitmapByName("gamebody_json.prompt_03");
+                var alertbg = new Bitmap("gamebody_json.prompt_03");
                 this.addChild(alertbg);
                 alertbg.x = 370;
                 alertbg.y = 480;
@@ -47,7 +47,7 @@ var ScoreAlert = (function (_super) {
                 dec.anchorOffsetX = dec.width / 2;
                 dec.anchorOffsetY = dec.height / 2;
                 this.addChild(dec);
-                var canclebt = this.createBitmapByName("gamebody_json.btn_03");
+                var canclebt = new Bitmap("gamebody_json.btn_03");
                 this.addChild(canclebt);
                 canclebt.x = 230;
                 canclebt.y = 610;
@@ -55,7 +55,7 @@ var ScoreAlert = (function (_super) {
                 canclebt.anchorOffsetY = canclebt.height / 2;
                 canclebt.touchEnabled = true;
                 canclebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
-                var sharebt = this.createBitmapByName("gamebody_json.btn_05");
+                var sharebt = new Bitmap("gamebody_json.btn_05");
                 this.addChild(sharebt);
                 sharebt.x = 510;
                 sharebt.y = 610;
@@ -65,7 +65,7 @@ var ScoreAlert = (function (_super) {
                 sharebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.shareGame, this);
                 break;
             case 2:
-                var gameover = this.createBitmapByName("gamebody_json.tan");
+                var gameover = new Bitmap("gamebody_json.tan");
                 this.addChild(gameover);
                 gameover.x = 370;
                 gameover.y = 480;
@@ -120,7 +120,7 @@ var ScoreAlert = (function (_super) {
                 ranking.text = this.ranking;
                 ranking.anchorOffsetY = ranking.height / 2;
                 this.addChild(ranking);
-                var rankings = this.createBitmapByName("gamebody_json.list");
+                var rankings = new Bitmap("gamebody_json.list");
                 this.addChild(rankings);
                 rankings.x = 230;
                 rankings.y = 610;
@@ -128,7 +128,7 @@ var ScoreAlert = (function (_super) {
                 rankings.anchorOffsetY = rankings.height / 2;
                 rankings.touchEnabled = true;
                 rankings.addEventListener(egret.TouchEvent.TOUCH_TAP, this.gotoRanking, this);
-                var reastgame = this.createBitmapByName("gamebody_json.return");
+                var reastgame = new Bitmap("gamebody_json.return");
                 this.addChild(reastgame);
                 reastgame.x = 510;
                 reastgame.y = 610;
@@ -138,7 +138,7 @@ var ScoreAlert = (function (_super) {
                 reastgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.reastGame, this);
                 break;
             case 3:
-                var alertbggame = this.createBitmapByName("gamebody_json.prompt_03");
+                var alertbggame = new Bitmap("gamebody_json.prompt_03");
                 this.addChild(alertbggame);
                 alertbggame.x = 370;
                 alertbggame.y = 480;
@@ -157,7 +157,7 @@ var ScoreAlert = (function (_super) {
                 decgame.anchorOffsetX = decgame.width / 2;
                 decgame.anchorOffsetY = decgame.height / 2;
                 this.addChild(decgame);
-                var canclebtgame = this.createBitmapByName("gamebody_json.btn_03");
+                var canclebtgame = new Bitmap("gamebody_json.btn_03");
                 this.addChild(canclebtgame);
                 canclebtgame.x = 230;
                 canclebtgame.y = 610;
@@ -165,7 +165,7 @@ var ScoreAlert = (function (_super) {
                 canclebtgame.anchorOffsetY = canclebtgame.height / 2;
                 canclebtgame.touchEnabled = true;
                 canclebtgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
-                var sharebtgame = this.createBitmapByName("gamebody_json.btn_05");
+                var sharebtgame = new Bitmap("gamebody_json.btn_05");
                 this.addChild(sharebtgame);
                 sharebtgame.x = 510;
                 sharebtgame.y = 610;
@@ -176,32 +176,32 @@ var ScoreAlert = (function (_super) {
                 break;
         }
     };
-    ScoreAlert.prototype.gotoRanking = function () {
-        var rankingevent = new RankingEvent(RankingEvent.DATE);
-        this.dispatchEvent(rankingevent);
+    Alert.prototype.gotoRanking = function () {
+        var event = new AlertEvent(AlertEvent.Ranking);
+        this.dispatchEvent(event);
     };
-    ScoreAlert.prototype.reastGame = function () {
-        var restartevent = new RestartEvent(RestartEvent.DATE);
-        this.dispatchEvent(restartevent);
+    Alert.prototype.reastGame = function () {
+        var event = new AlertEvent(AlertEvent.Restart);
+        this.dispatchEvent(event);
     };
-    ScoreAlert.prototype.shareGame = function () {
-        var daterEvent = new AlertEvent(AlertEvent.DATE);
-        this.dispatchEvent(daterEvent);
+    Alert.prototype.shareGame = function () {
+        var event = new AlertEvent(AlertEvent.Share);
+        this.dispatchEvent(event);
     };
-    ScoreAlert.prototype.cancleShareGame = function () {
-        var cancleEvent = new CancleEvent(CancleEvent.DATE);
-        this.dispatchEvent(cancleEvent);
+    Alert.prototype.cancleShareGame = function () {
+        var event = new AlertEvent(AlertEvent.Cancle);
+        this.dispatchEvent(event);
     };
-    ScoreAlert.prototype.createBitmapByName = function (name) {
+    Alert.prototype.createBitmapByName = function (name) {
         var result = new egret.Bitmap();
         var texture = RES.getRes(name);
         result.texture = texture;
         return result;
     };
-    return ScoreAlert;
+    return Alert;
 }(egret.Sprite));
-ScoreAlert.HomePageShare = 1;
-ScoreAlert.GamePageScore = 2;
-ScoreAlert.GamePageShare = 3;
-__reflect(ScoreAlert.prototype, "ScoreAlert");
-//# sourceMappingURL=ScoreAlert.js.map
+Alert.HomePageShare = 1; //首页分享
+Alert.GamePageScore = 2; //游戏结束
+Alert.GamePageShare = 3; //游戏页面分享
+__reflect(Alert.prototype, "Alert");
+//# sourceMappingURL=Alert.js.map

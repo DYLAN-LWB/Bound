@@ -49,7 +49,7 @@ class Home extends egret.DisplayObjectContainer {
         //test app url
 		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
         this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=0&activitynum=9&timenum=1";
-        alert("this._pageUrl = "+this._pageUrl);
+        // alert("this._pageUrl = "+this._pageUrl);
         //解析url参数
         var params = this.getUrlParams();
         this._info._vuid = params["uid"];

@@ -34,13 +34,13 @@ class Game extends egret.DisplayObjectContainer {
 	private _personWH = 110;			//对象宽高
 
 	private _guideLine = new egret.Shape();				//线条引导
-	private _guideArrow = new Bitmap("ladder_png");		//箭头引导
-	private _historyArrow = new Bitmap("ladder_png");	//上次箭头引导轨迹
+	private _guideArrow = new Bitmap("step_png");		//箭头引导
+	private _historyArrow = new Bitmap("step_png");	//上次箭头引导轨迹
 
 	private _touchBeginPoint = new egret.Point(0,0);	//开始触摸的点
 	private _touchMoveToX: number;						//X坐标将要移动到的位置
 	private _touchMoveToY: number;						//Y坐标将要移动到的位置
-	private _guideMaxLength = 150;						//箭头的最大长度
+	private _guideMaxLength = 200;						//箭头的最大长度
 	private _guideTruthLength: number;					//箭头实际长度
 
 	private _pathHighX: number;		//运动到最高点的x坐标
@@ -70,7 +70,7 @@ class Game extends egret.DisplayObjectContainer {
     }
 
 	//接口-请求单词, 只在初次添加UI
-	private getWords(init:boolean) {
+	private getWords(type: number) {
 		// this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o"];
 
 		let params = "?vuid=" + this._info._vuid + 
@@ -86,17 +86,43 @@ class Game extends egret.DisplayObjectContainer {
 			console.log(JSON.parse(request.response));
 			let result = JSON.parse(request.response);
 	        if (result["code"] == 0) {
-				Array.prototype.push.apply(this._allWords, result["data"]); //将请求到的单词添加到大数组
-				let wordsString = result["data"].join().replace(/,/g,""); //将单词数组转为字符串,并且去掉所有逗号
+				if (type == 3) {
+					this._wordTF.text = "单词：";
+
+					for(let i = 0; i < this._letterTFArray.length; i++ ) {
+						this.removeChild(this._stepsArray[i]);
+					}
+
+					for(let z = 0; z < this._letterTFArray.length; z++ ) {
+						this.removeChild(this._letterTFArray[z]);
+						this.removeChild(this._letterImgArray[z]);
+					}
+					this._letterArray.splice(0, this._letterArray.length);
+					this._letterTFArray.splice(0, this._letterTFArray.length);
+					this._letterImgArray.splice(0, this._letterImgArray.length);
+					this._stepsArray.splice(0, this._stepsArray.length);
+				}
+				let wordArray = [];
+
+				for(let i = 0; i < result["data"].length; i++) {
+					wordArray.push(result["data"][i]["word"]);
+				}
+
+				Array.prototype.push.apply(this._allWords, wordArray); //将请求到的单词添加到大数组
+				let wordsString = wordArray.join().replace(/,/g,"").replace(/ /g,"").toLowerCase(); //将单词数组转为字符串,并且去掉所有逗号,转成小写
+				console.log("this._allWords="+this._allWords);
+
 				let newLetters = wordsString.split("");	//将字母字符串转为数组
 				Array.prototype.push.apply(this._letterArray, newLetters); //追加到字母数组
-				
+
 				//接口请求成功添加UI
-				if (init) {
+				if (type == 1) {
 					this.setupSteps();	//添加台阶
 					this.setupPerson();	//添加游戏人物
 					this.setupReminder();	//添加提示信息,其他
 					this.addTouchEvent();	//添加touch事件
+				} else if (type == 3) {
+					this.setupSteps();	//添加台阶
 				}
 
 			} else {
@@ -108,10 +134,12 @@ class Game extends egret.DisplayObjectContainer {
 	//设置台阶
 	private setupSteps() {
 
+		this._stepBeginX = 200;
+
 		//第一个台阶特殊 手动创建
-		let firstStep = new Bitmap("ladder_png");
-		firstStep.width = 120;
-		firstStep.height = 25;
+		let firstStep = new Bitmap("step_png");
+		firstStep.width = 130;
+		firstStep.height = 30;
 		firstStep.y = this._personTopY + this._personWH;
 		firstStep.x = this._stepBeginX - firstStep.width/2;
 		this.addChild(firstStep);
@@ -126,9 +154,9 @@ class Game extends egret.DisplayObjectContainer {
 		for(let i = 0; i < this._totalStepCount; i++) {
 
 			//创建台阶
-			let _step = new Bitmap("ladder_png");
-            _step.width = 120;
-            _step.height = 25;
+			let _step = new Bitmap("step_png");
+            _step.width = 130;
+            _step.height = 30;
 			_step.y = this._personTopY + this._personWH;
 			_step.x = _frontStepX + _step.width + 50 +  Math.random()*300;
             this.addChild(_step);
@@ -157,7 +185,7 @@ class Game extends egret.DisplayObjectContainer {
        		_letterImg.width = 60;
             _letterImg.height = 60;
 			_letterImg.y = _step.y - 60;
-			_letterImg.x = _step.x + 30;
+			_letterImg.x = _step.x + 35;
             this.addChild(_letterImg);
 
 			//添加到字母图片数组
@@ -181,7 +209,7 @@ class Game extends egret.DisplayObjectContainer {
 
 
 		//指示箭头提示
-		this._guideArrow = new Bitmap("ladder_png");
+		this._guideArrow = new Bitmap("step_png");
 		this._guideArrow.y = this._personBeginPoint.y;
 		this._guideArrow.x = this._personBeginPoint.x;
 		this._guideArrow.width = 0;
@@ -191,29 +219,41 @@ class Game extends egret.DisplayObjectContainer {
 
 	//设置提示文字,分数,倒计时
 	private setupReminder() {
-		//分数提示
-		this._scoreTF = new egret.TextField();
-		this._scoreTF.x = this.stage.stageWidth*0.25;
-		this._scoreTF.y = 20;
-		this._scoreTF.width = this.stage.stageWidth*0.5;
-		this._scoreTF.height = 55;
-        this._scoreTF.textColor = 0xFF0000;
-		this._scoreTF.textAlign =  egret.HorizontalAlign.CENTER;
-        this._scoreTF.size = 30;
-        this._scoreTF.text = "您已经走了" + this._score + "米";
-        this.addChild(this._scoreTF);
+
+		let wordBg = new Bitmap("wordBg_png");
+		wordBg.x = this.stage.stageWidth*0.3;
+		wordBg.y = 0;
+		wordBg.width = this.stage.stageWidth*0.4;
+		wordBg.height = 100;
+		this.addChild(wordBg);
 
 		//单词提示
 		this._wordTF = new egret.TextField();
 		this._wordTF.x = this.stage.stageWidth*0.25;
-		this._wordTF.y = 100;
+		this._wordTF.y = 30;
 		this._wordTF.width = this.stage.stageWidth*0.5;
-		this._wordTF.height = 55;
-        this._wordTF.textColor = 0xFFFFFF;
-		this._wordTF.textAlign =  egret.HorizontalAlign.CENTER;
-        this._wordTF.size = 50;
-        this._wordTF.text = "";
+		this._wordTF.height = 50;
+        this._wordTF.textColor = 0xff6600;
+		this._wordTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._wordTF.size = 32;
+        this._wordTF.text = "单词：";
+		this._wordTF.fontFamily = "Microsoft YaHei"
         this.addChild(this._wordTF);
+
+		//分数提示
+		this._scoreTF = new egret.TextField();
+		this._scoreTF.x = this.stage.stageWidth*0.25;
+		this._scoreTF.y = 120;
+		this._scoreTF.width = this.stage.stageWidth*0.5;
+		this._scoreTF.height = 55;
+        this._scoreTF.textColor = 0x20544a;
+		this._scoreTF.textAlign =  egret.HorizontalAlign.CENTER;
+        this._scoreTF.size = 30;
+        this._scoreTF.text = "您已经走了" + this._score + "米";
+		this._scoreTF.fontFamily = "Microsoft YaHei"
+        this.addChild(this._scoreTF);
+
+
 
 		// //倒计时提示
 		// this._scendsTF = new egret.TextField();
@@ -363,11 +403,11 @@ class Game extends egret.DisplayObjectContainer {
 		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2 - 10;
 
 		//画箭头
- 		this._guideLine.graphics.lineStyle(2,0x000000);
+ 		this._guideLine.graphics.lineStyle(3,0x000000);
         this._guideLine.graphics.moveTo(this._personBeginPoint.x, this._personBeginPoint.y);	//起点
 		this._guideLine.graphics.curveTo(controlX, controlY, this._touchMoveToX, this._touchMoveToY);	//控制点,终点
         this._guideLine.graphics.endFill();
-		this._guideLine.alpha = 0.2;
+		this._guideLine.alpha = 0.3;
         this.addChild(this._guideLine);
 	}
 
@@ -397,7 +437,7 @@ class Game extends egret.DisplayObjectContainer {
 		this.removeTouchEvent();
 
 		//根据线的长度计算最高点 2倍
-		this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)*4;
+		this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)*5;
 		this._pathHighY = this._personBeginPoint.y - this._personWH - (this._personBeginPoint.y - this._touchMoveToY)*4;
 
 		//缓动动画
@@ -489,7 +529,10 @@ class Game extends egret.DisplayObjectContainer {
 
 		//拿到目标台阶上的字母
 		if(hitIndex > 0) {
-			let wordTF= this._letterTFArray[hitIndex-1];
+
+			console.log("发生碰撞时"+this._letterTFArray.length);
+
+			let wordTF = this._letterTFArray[hitIndex-1];
 			this.addLetter(wordTF.text);
 		}
 
@@ -518,6 +561,7 @@ class Game extends egret.DisplayObjectContainer {
 		egret.Tween.get(this._person).to({x:this._stepBeginX - this._person.width/2}, 300);
 
 		this._hitIndex = hitIndex;
+
 
 		//台阶动画结束后再执行
 		let timer: egret.Timer = new egret.Timer(310, 1);
@@ -548,7 +592,6 @@ class Game extends egret.DisplayObjectContainer {
 			};
 		}
 
-		console.log("this._hitIndex = " + this._hitIndex);
 		//删除跳跃过的数据
 		this._letterTFArray.splice(0, this._hitIndex);
 		this._letterImgArray.splice(0, this._hitIndex);
@@ -561,11 +604,11 @@ class Game extends egret.DisplayObjectContainer {
 		let _frontX = _lastStep.x;
 		//末尾添加台阶index
 		for(let i = 0; i < this._hitIndex; i++ ) {
-			let _step = new Bitmap("ladder_png");
+			let _step = new Bitmap("step_png");
 			_step.y = this._personTopY + this._personWH;
 			_step.x = _frontX + _step.width +  Math.random()*300;
-			_step.width = 120;
-			_step.height = 25;
+			_step.width = 130;
+			_step.height = 30;
 			this.addChild(_step);
 
 			//重置前一个台阶的x值
@@ -592,7 +635,7 @@ class Game extends egret.DisplayObjectContainer {
        		_letterImg.width = 60;
             _letterImg.height = 60;
 			_letterImg.y = _step.y - 60;
-			_letterImg.x = _step.x + 30;
+			_letterImg.x = _step.x + 35;
             this.addChild(_letterImg);
 
 			//添加到字母图片数组
@@ -601,22 +644,40 @@ class Game extends egret.DisplayObjectContainer {
 
 		this._letterArray.splice(0, this._hitIndex);
 
+		//字母少的时候重新添加数据
+		if(this._letterArray.length < 10){
+			this.getWords(2);
+		}
+
 		//移动之后重新添加交互事件
 		this.addTouchEvent();
+
+		//隔着跳 重置单词
+		if(this._hitIndex > 1) {
+			console.log("隔着跳了");
+
+			this.getWords(3);
+		}
 	}
 
 	private addLetter(letter:string) {
-
+		let word = this._wordTF.text.replace("单词：","");
+		if(word.length == 11) {
+			this._wordTF.text = "单词：";
+		}
 		this._wordTF.text += letter;
 
 		for(let i = 0; i < this._allWords.length; i++) {
-			this.checkWord(this._allWords[i]);
+			let check = this._allWords[i].replace(".","").replace(" ","").toLowerCase();
+			this.checkWord(check);
 		}
 	}
 
 	private checkWord(word: string) {
+		// console.log("checkWord"+ word + "----" +this._wordTF.text.replace("单词：",""));
 
-		if(this._wordTF.text == word){
+		if(this._wordTF.text.replace("单词：","").replace(".","") == word){
+
 			this.removeTouchEvent();
 
 			//增加分数
@@ -637,7 +698,7 @@ class Game extends egret.DisplayObjectContainer {
 			request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			request.send();
 			request.addEventListener(egret.Event.COMPLETE, function() {
-				console.log(JSON.parse(request.response));
+
 				let result = JSON.parse(request.response);
 				if(result["baesInfo"]["symbols"].length>0) {
 					let voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"]
@@ -654,14 +715,19 @@ class Game extends egret.DisplayObjectContainer {
 			timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
 						
 				//加速动画
-				this.addChild(new SpeedMotion());
+				this.addChild(new GameSpeedMotion(this.stage.stageWidth));
 
 				this.addTouchEvent();
 
-				//增加本地分数
-				this._score += 50;
-				this._scoreTF.text = "您已经走了" + this._score + "米";
-				this._wordTF.text = "";
+				let add: egret.Timer = new egret.Timer(300, 1);
+				add.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
+					//增加本地分数
+					this._score += 50;
+					this._scoreTF.text = "您已经走了" + this._score + "米";
+					this._wordTF.text = "单词：";
+				},this);
+				add.start();
+
 
 				if(right && right.parent) {
 					right.parent.removeChild(right);
@@ -712,7 +778,7 @@ class Game extends egret.DisplayObjectContainer {
 				this._tid = parseInt(result["data"]["tid"]);
 
 				//请求单词
-				this.getWords(true);
+				this.getWords(1);
 			} else {
 				alert("请求出错-"+result["msg"]);
 			}

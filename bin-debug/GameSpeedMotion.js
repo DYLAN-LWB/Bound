@@ -6,12 +6,20 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var SpeedMotion = (function (_super) {
-    __extends(SpeedMotion, _super);
-    function SpeedMotion() {
+var GameSpeedMotion = (function (_super) {
+    __extends(GameSpeedMotion, _super);
+    function GameSpeedMotion(stageW) {
         var _this = _super.call(this) || this;
         _this.count = 5;
         _this.index = 0;
+        _this._person = new Bitmap("beibei_png"); //弹跳对象
+        _this._stageW = stageW;
+        _this._person.width = 110;
+        _this._person.height = 110;
+        _this._person.x = 145;
+        _this._person.y = 350;
+        _this.addChildAt(_this._person, 99);
+        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1000);
         var timer = new egret.Timer(300, _this.count);
         timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);
         timer.start();
@@ -23,48 +31,52 @@ var SpeedMotion = (function (_super) {
         sound.load("resource/sound/rocket.mp3");
         return _this;
     }
-    SpeedMotion.prototype.timerFunc = function (event) {
+    GameSpeedMotion.prototype.timerFunc = function (event) {
         this.index += 1;
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = new Bitmap("1_png");
-        this.speedImage.width = this.stage.stageWidth;
+        this.speedImage = new Bitmap("speed1_png");
+        this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
         var timer1 = new egret.Timer(100, 1);
         timer1.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc1, this);
         timer1.start();
     };
-    SpeedMotion.prototype.timerComFunc1 = function (event) {
+    GameSpeedMotion.prototype.timerComFunc1 = function (event) {
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = new Bitmap("2_png");
-        this.speedImage.width = this.stage.stageWidth;
+        this.speedImage = new Bitmap("speed2_png");
+        this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
         var timer2 = new egret.Timer(100, 1);
         timer2.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc2, this);
         timer2.start();
     };
-    SpeedMotion.prototype.timerComFunc2 = function (event) {
+    GameSpeedMotion.prototype.timerComFunc2 = function (event) {
         if (this.speedImage && this.speedImage.parent) {
             this.speedImage.parent.removeChild(this.speedImage);
         }
         ;
-        this.speedImage = new Bitmap("3_png");
-        this.speedImage.width = this.stage.stageWidth;
+        this.speedImage = new Bitmap("speed3_png");
+        this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
         if (this.index == this.count) {
             if (this.speedImage && this.speedImage.parent) {
                 this.speedImage.parent.removeChild(this.speedImage);
             }
             ;
+            if (this._person && this._person.parent) {
+                this._person.parent.removeChild(this._person);
+            }
+            ;
             this._channel.stop();
         }
     };
-    return SpeedMotion;
+    return GameSpeedMotion;
 }(egret.Sprite));
-__reflect(SpeedMotion.prototype, "SpeedMotion");
+__reflect(GameSpeedMotion.prototype, "GameSpeedMotion");
 //# sourceMappingURL=GameSpeedMotion.js.map

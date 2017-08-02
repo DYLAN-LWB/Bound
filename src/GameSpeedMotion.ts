@@ -1,12 +1,24 @@
-class SpeedMotion extends egret.Sprite {
+class GameSpeedMotion extends egret.Sprite {
 
 	private speedImage;
     private count: number = 5;
     private index: number = 0;
 	private _channel: egret.SoundChannel;
+	private _person = new Bitmap("beibei_png");			//弹跳对象
+	private _stageW :number;
 
-    public constructor() {
+    public constructor(stageW:number) {
         super();
+		this._stageW = stageW;
+
+		this._person.width = 110;
+		this._person.height = 110;
+		this._person.x = 145;
+		this._person.y = 350;
+		this.addChildAt(this._person,99);
+
+		egret.Tween.get(this._person).to({x:this._stageW - 150,y: 250}, 1000);
+
 
         let timer: egret.Timer = new egret.Timer(300, this.count);
 		timer.addEventListener(egret.TimerEvent.TIMER,this.timerFunc,this);
@@ -28,8 +40,8 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = new Bitmap("1_png");
-		this.speedImage.width = this.stage.stageWidth;
+		this.speedImage = new Bitmap("speed1_png");
+		this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
 
 		let timer1: egret.Timer = new egret.Timer(100, 1);
@@ -43,8 +55,8 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = new Bitmap("2_png");
-		this.speedImage.width = this.stage.stageWidth;
+		this.speedImage = new Bitmap("speed2_png");
+		this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
 
 		let timer2: egret.Timer = new egret.Timer(100, 1);
@@ -58,8 +70,8 @@ class SpeedMotion extends egret.Sprite {
 			this.speedImage.parent.removeChild(this.speedImage)
 		};
 
-		this.speedImage = new Bitmap("3_png");
-		this.speedImage.width = this.stage.stageWidth;
+		this.speedImage = new Bitmap("speed3_png");
+		this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
 
     
@@ -67,7 +79,10 @@ class SpeedMotion extends egret.Sprite {
             if(this.speedImage && this.speedImage.parent) {
 			    this.speedImage.parent.removeChild(this.speedImage)
 		    };
-
+			
+			if(this._person && this._person.parent) {
+			    this._person.parent.removeChild(this._person)
+		    };
 			this._channel.stop();
         }
 	}

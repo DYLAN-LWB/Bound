@@ -14,11 +14,10 @@ var Game = (function (_super) {
         _this._info = new Info(); //公用信息表
         //public
         _this._totalStepCount = 5; //台阶数量
-        _this._lifeCount = 111; //x条命
+        _this._lifeCount = 5; //x条命
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
         _this._score = 0; //走的总米数
-        _this._scends = 5; //游戏默认180秒
-        _this._isGameOver = true; //游戏是否结束
+        _this._scends = 180; //游戏默认180秒
         _this._stepsArray = []; //阶梯数组
         _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
         _this._letterTFArray = []; //字母textfield
@@ -40,17 +39,25 @@ var Game = (function (_super) {
         //游戏背景
         var _gameBackground = new GameBackground(this.stage.stageWidth, this.stage.stageHeight);
         this.addChild(_gameBackground);
+        this._info._vuid = localStorage.getItem("vuid").replace("\"", "").replace("\"", "");
+        this._info._key = localStorage.getItem("key").replace("\"", "").replace("\"", "");
+        this._info._isfrom = localStorage.getItem("isfrom").replace("\"", "").replace("\"", "");
+        this._info._timenum = localStorage.getItem("timenum").replace("\"", "").replace("\"", "");
+        this._info._activitynum = localStorage.getItem("activitynum").replace("\"", "").replace("\"", "");
         //请求单词
-        this.getWords();
-        //添加台阶
-        this.setupSteps();
-        //添加游戏人物
-        this.setupPerson();
-        //添加提示信息,其他
-        this.setupReminder();
-        //添加touch事件
-        this.addTouchEvent();
-        //减游戏次数
+        this.getWords(true);
+    };
+    //接口-请求单词, 只在初次添加UI
+    Game.prototype.getWords = function (init) {
+        this._letterArray = ["g", "o", "o", "d", "a", "p", "p", "l", "e", "j", "k", "l", "m", "n", "o"];
+        //接口请求成功添加UI
+        if (init) {
+            this.setupSteps(); //添加台阶
+            this.setupPerson(); //添加游戏人物
+            this.setupReminder(); //添加提示信息,其他
+            this.addTouchEvent(); //添加touch事件
+            this.minusGameCount(); //减游戏次数
+        }
     };
     //设置台阶
     Game.prototype.setupSteps = function () {
@@ -184,12 +191,8 @@ var Game = (function (_super) {
     //计时完成 游戏结束
     Game.prototype.gameTimerCompleteFunc = function () {
         this.removeTouchEvent();
-        this._normalAlert = new Alert(Alert.GamePageScore, "111", "11", "333", 123, this.stage.stageHeight);
-        this._normalAlert.x = 250;
-        this._normalAlert.y = -100;
-        this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
-        this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
-        this.addChild(this._normalAlert);
+        //请求游戏结束接口
+        this.gameOver();
         if (this._countdownChannel)
             this._countdownChannel.stop();
         if (this._backgroundChannel)
@@ -379,6 +382,8 @@ var Game = (function (_super) {
         //移动米数
         this._score += Math.round(moveLen / 100);
         this._scoreTF.text = "您已经走了" + this._score + "米";
+        //增加分数
+        this.plusScore(Math.round(moveLen / 100));
         //遍历数组 改变台阶x值
         for (var j = 0; j < this._stepsArray.length; j++) {
             var ste = this._stepsArray[j];
@@ -469,6 +474,8 @@ var Game = (function (_super) {
             //加速动画
             var speed = new SpeedMotion();
             this.addChild(speed);
+            //增加分数
+            this.plusScore(50);
             //加米数
             var timer = new egret.Timer(300, 1);
             timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
@@ -491,17 +498,79 @@ var Game = (function (_super) {
         this.removeChildren();
         this._scends = 180;
         this._score = 0;
-        this._isGameOver = true;
         //重玩时清空数组
         this._stepsArray.splice(0, this._stepsArray.length);
         this._letterArray.splice(0, this._letterArray.length);
         this._letterTFArray.splice(0, this._letterTFArray.length);
         this._letterImgArray.splice(0, this._letterImgArray.length);
+        //重新添加游戏场景
         this.createGameScene();
     };
-    //请求单词接口
-    Game.prototype.getWords = function () {
-        this._letterArray = ["g", "o", "o", "d", "a", "p", "p", "l", "e", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+    //接口-增加分数
+    Game.prototype.plusScore = function (score) {
+        var params = "?vuid=" + this._info._vuid +
+            "&rands=" + this._rands +
+            "&tid=" + this._tid +
+            "&md5=" + score +
+            "&timenum=" + this._info._timenum +
+            "&activitynum=" + this._info._activitynum +
+            "&isfrom=" + this._info._isfrom;
+        var request = new egret.HttpRequest();
+        request.responseType = egret.HttpResponseType.TEXT;
+        request.open(this._info._typosTempjump, egret.HttpMethod.POST);
+        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.send(score);
+        request.addEventListener(egret.Event.COMPLETE, function () {
+            console.log(JSON.parse(request.response));
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+        }, this);
+    };
+    //接口-减游戏次数
+    Game.prototype.minusGameCount = function () {
+        var params = "?vuid=" + this._info._vuid +
+            "&key=" + this._info._key +
+            "&timenum=" + this._info._timenum +
+            "&activitynum=" + this._info._activitynum +
+            "&isfrom=" + this._info._isfrom;
+        var request = new egret.HttpRequest();
+        request.responseType = egret.HttpResponseType.TEXT;
+        request.open(this._info._downnum + params, egret.HttpMethod.GET);
+        console.log(this._info._downnum + params);
+        request.send();
+        request.addEventListener(egret.Event.COMPLETE, function () {
+            console.log(JSON.parse(request.response));
+            var result = JSON.parse(request.response);
+            this._linnum = parseInt(result.data.linnum);
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+        }, this);
+    };
+    //接口-游戏结束
+    Game.prototype.gameOver = function () {
+        var params = "?score=" + this._score +
+            "&vuid=" + this._info._vuid +
+            "&key=" + this._info._key +
+            "&rands=" + this._rands +
+            "&timenum=" + this._info._timenum +
+            "&activitynum=" + this._info._activitynum +
+            "&isfrom=" + this._info._isfrom;
+        var request = new egret.HttpRequest();
+        request.responseType = egret.HttpResponseType.TEXT;
+        //将参数拼接到url
+        console.log(this._info._gameover + params);
+        request.open(this._info._gameover + params, egret.HttpMethod.GET);
+        request.send();
+        request.addEventListener(egret.Event.COMPLETE, function () {
+            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), "11", "333", 123, this.stage.stageHeight);
+            this._normalAlert.x = 250;
+            this._normalAlert.y = -100;
+            this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+            this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+            this.addChild(this._normalAlert);
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+        }, this);
     };
     return Game;
 }(egret.DisplayObjectContainer));

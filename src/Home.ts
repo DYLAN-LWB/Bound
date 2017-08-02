@@ -150,12 +150,20 @@ class Home extends egret.DisplayObjectContainer {
         //test app url
 		this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
 
+        //解析url参数
         var params = this.getUrlParams();
-        this._info._key = params["key"];
         this._info._vuid = params["uid"];
+        this._info._key = params["key"];
         this._info._isfrom = params["isfrom"];
         this._info._timenum = params["timenum"];
         this._info._activitynum = params["activitynum"];
+
+        //保存信息
+        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
+        localStorage.setItem("key", JSON.stringify(this._info._key))
+        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
+        localStorage.setItem("timenum", JSON.stringify(this._info._timenum))
+        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
 
         //设置页面
         this.setupUI();
@@ -174,11 +182,9 @@ class Home extends egret.DisplayObjectContainer {
         var content = this._pageUrl.substring(index);
         var url = decodeURIComponent(content);
         var theRequest = new Object();
-        console.log(url.indexOf("?"));
         if (url.indexOf("?") != -1) {
             var str = url.substr(1);
             var strs = str.split("&");
-            console.log(strs);
             for (var i = 0; i < strs.length; i++) {
                 theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);//decodeURI
             }
@@ -189,7 +195,11 @@ class Home extends egret.DisplayObjectContainer {
     //获取用户剩余次数
     public getUserCanPalyNumber() {
 
-        var params = "?vuid=" + this._info._vuid + "&key=" + this._info._key + "&timenum=" + this._info._timenum + "&activitynum=" + this._info._activitynum + "&isfrom=" + this._info._isfrom;
+        var params = "?vuid=" + this._info._vuid + 
+                     "&key=" + this._info._key + 
+                     "&timenum=" + this._info._timenum +
+                     "&activitynum=" + this._info._activitynum + 
+                     "&isfrom=" + this._info._isfrom;
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         //将参数拼接到url
@@ -314,7 +324,6 @@ class Home extends egret.DisplayObjectContainer {
         }, this);
 		this.addChild(_shareGuide);
     }
-
 
     //http请求-------end
 }

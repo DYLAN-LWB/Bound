@@ -4,18 +4,18 @@ class Home extends egret.DisplayObjectContainer {
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.createGameScene, this);
     }
 
-    public _playNumText;	//剩余挑战机会
-    public _startButton;	//开始按钮
-    public _overButton;		//活动结束
-    public _rankButton;		//查看排名
-    public _alert;	//弹窗提示
-
-  
-    public _playCount = -1;  //挑战次数
+    private _playNumText;	//剩余挑战机会
+    private _startButton;	//开始按钮
+    private _overButton;	//活动结束
+    private _rankButton;	//查看排名
+    private _alert;	        //弹窗提示
+    private _playCount = -1;  //挑战次数
+    private _attentionView = new Bitmap("attention_png");
 
     private _isPortraitScreen: boolean = false; //横竖屏
-
     private _info = new Info(); //公用信息表
+
+    public _pageUrl = window.location.href;	//获取当前页面地址
 
     private createGameScene() {
 
@@ -33,11 +33,38 @@ class Home extends egret.DisplayObjectContainer {
 
 		//获取用户相关信息
         this.getUserInfo();
+    }
+     public getUserInfo() {
 
-		//test
-		// this._info._isfrom = "1";
+        //test app url
+		this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
 
+        //解析url参数
+        var params = this.getUrlParams();
+        this._info._vuid = params["uid"];
+        this._info._key = params["key"];
+        this._info._isfrom = params["isfrom"];
+        this._info._timenum = params["timenum"];
+        this._info._activitynum = params["activitynum"];
 
+        //保存信息
+        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
+        localStorage.setItem("key", JSON.stringify(this._info._key))
+        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
+        localStorage.setItem("timenum", JSON.stringify(this._info._timenum))
+        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
+
+        //设置页面
+        this.setupUI();
+
+        //获取用户剩余挑战次数
+        if (parseInt(this._info._isfrom) == 0) {
+            this.getUserCanPalyNumber();
+        }
+
+        if (this._info._key == null) {
+			alert("请先登录！");
+        }
     }
 
     private setupUI() {
@@ -110,6 +137,8 @@ class Home extends egret.DisplayObjectContainer {
             this._rankButton.touchEnabled = true;
             this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
+
+            this.setupAttentionRemind();
         }
 
     }
@@ -122,79 +151,21 @@ class Home extends egret.DisplayObjectContainer {
 	//开始游戏
     private startPlayGame(evt:egret.TouchEvent) {
 
+        //避免重复点击使游戏次数出错
         this._rankButton.touchEnabled = false;
         this._startButton.touchEnabled = false;
-
-		//test
-		// this.removeChildren();
-        // var _game = new Game();
-        // this.addChild(_game);
-		// return;
 
         //微信端检查是否关注
         if (parseInt(this._info._isfrom) == 0) {
             this.checkIsAttention();
-        } else {
+        } else { //app直接进入游戏页面
             this.removeChildren();
-            var _game = new Game();
-            this.addChild(_game);
+            this.addChild(new Game());
         }
-    }
-
-    //http请求-------begin
-
-    public _pageUrl = window.location.href;	//获取当前页面地址
-
-    public getUserInfo() {
-
-        //test app url
-		this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
-
-        //解析url参数
-        var params = this.getUrlParams();
-        this._info._vuid = params["uid"];
-        this._info._key = params["key"];
-        this._info._isfrom = params["isfrom"];
-        this._info._timenum = params["timenum"];
-        this._info._activitynum = params["activitynum"];
-
-        //保存信息
-        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
-        localStorage.setItem("key", JSON.stringify(this._info._key))
-        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
-        localStorage.setItem("timenum", JSON.stringify(this._info._timenum))
-        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
-
-        //设置页面
-        this.setupUI();
-
-        //获取用户剩余挑战次数
-        this.getUserCanPalyNumber();
-
-        if (this._info._key == null) {
-			alert("请先登录！");
-        }
-    }
-
-	//解析接口包含的参数
-    public  getUrlParams() {
-        var index = this._pageUrl.indexOf("?");
-        var content = this._pageUrl.substring(index);
-        var url = decodeURIComponent(content);
-        var theRequest = new Object();
-        if (url.indexOf("?") != -1) {
-            var str = url.substr(1);
-            var strs = str.split("&");
-            for (var i = 0; i < strs.length; i++) {
-                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);//decodeURI
-            }
-        }
-        return theRequest;
     }
 
     //获取用户剩余次数
-    public getUserCanPalyNumber() {
-
+    private getUserCanPalyNumber() {
         var params = "?vuid=" + this._info._vuid + 
                      "&key=" + this._info._key + 
                      "&timenum=" + this._info._timenum +
@@ -202,110 +173,86 @@ class Home extends egret.DisplayObjectContainer {
                      "&isfrom=" + this._info._isfrom;
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
-        //将参数拼接到url
         request.open(this._info._canPalyNumber + params, egret.HttpMethod.GET);
-        console.log(this._info._canPalyNumber + params);
         request.send();
-        request.addEventListener(egret.Event.COMPLETE, this.getUserCanPalyNumberSuccess, this);
-        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
-            console.log("post error : " + event);
-            this._rankButton.touchEnabled = true;
-            this._startButton.touchEnabled = true;
-        }, this);
-    }
-    //剩余挑战次数
-    private getUserCanPalyNumberSuccess(event:egret.Event):void {
-        if (parseInt(this._info._isfrom) == 0) {
-            var request = <egret.HttpRequest>event.currentTarget;
-            var result = JSON.parse(request.response);
-
-            console.log(result["data"]);
-
-            if (result["code"] == 0) {
-
-                var isend = result["data"]["isend"];
-                if (isend != 0) {
+        request.addEventListener(egret.Event.COMPLETE, function() {
+            let result = JSON.parse(request.response);
+            if (result.code == 0) {
+                this._playCount = result.data.num;
+                this._playNumText.text = "您当前有" + this._playCount + "次挑战机会";
+                if (result.data.isend != 0) {
                     this.removeChild(this._startButton);
                     this._overButton = new Bitmap("gamebody_json.ending");
-                    this._overButton.x = 180;
-                    this._overButton.y = 860;
+                    this._overButton.x = this._isPortraitScreen ? 180 : 780;
+                    this._overButton.y = this._isPortraitScreen ? 820 : 570;
+                    this._overButton.rotation = this._isPortraitScreen ? 0 : -90;
                     this._overButton.touchEnabled = true;
                     this._overButton.addEventListener(egret.TouchEvent.TOUCH_TAP, function() {
                         alert("活动已结束");
                     }, this);
                     this.addChild(this._overButton);
                 }
-                var num_is = result["data"]["num"];
-                this._playNumText.text = "您当前有" + parseInt(num_is) + "次挑战机会";
-                if (result["data"]["num"] > 0) {
-                    this._playCount = 1;
-                } else {
-                    this._playCount = 0;
-                }
             }
-        }
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
+            console.log("post error : " + event);
+            this._rankButton.touchEnabled = true;
+            this._startButton.touchEnabled = true;
+        }, this);
     }
 
-    //获取是否关注
-    public canEnter = -1;
-
     //检查是否关注
-    public checkIsAttention() {
+    private checkIsAttention() {
 
         let params = "?vuid=" + this._info._vuid + "&timenum=" + this._info._timenum + "&activitynum=" + this._info._activitynum + "&isfrom=" + this._info._isfrom;
         let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._hasAttention + params, egret.HttpMethod.GET); 
         request.send();
-        request.addEventListener(egret.Event.COMPLETE, this.checkAttentionSuccess, this);
+        request.addEventListener(egret.Event.COMPLETE, function() {
+            let result = JSON.parse(request.response);
+            if (result["code"] == 0) { //已关注
+                if (this._playCount > 0) { //已关注并且有游戏次数 进入游戏页面
+                    this.removeChildren();
+                    this.addChild(new Game());
+                } else { //弹窗获取次数, 没有跳转次数点击开始游戏时提示分享
+                    this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight);
+                    this._alert.x = this._isPortraitScreen ? 0 : 110;
+                    this._alert.y = this._isPortraitScreen ? 0 : 660;
+                    this._alert.rotation = this._isPortraitScreen ? 0 : -90;
+                    this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
+                    this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
+                    this.addChild(this._alert);
+                }
+            } else if (result["code"] == 2) { //未关注 进入关注界面
+                this.setupAttentionRemind();
+            }
+
+        }, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
             alert("post error : " + event);
             this._rankButton.touchEnabled = true;
             this._startButton.touchEnabled = true;
         }, this);
     }
+    private setupAttentionRemind() {
+        this._rankButton.touchEnabled = true;
+        this._startButton.touchEnabled = true;
 
-    private checkAttentionSuccess(event:egret.Event):void {
-        let request = <egret.HttpRequest>event.currentTarget;
-        let result = JSON.parse(request.response);
-        alert(result["code"]);
-        if (result["code"] == 0) {
-            //已关注
-            this.canEnter = 1;
-            if (this._playCount > 0) {
-                //减掉游戏次数
-                this.removeChildren();
-                var _game = new Game();
-                this.addChild(_game);
-            } else { //弹窗获取次数
-                this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight);
-                this._alert.x = this._isPortraitScreen ? 0 : 110;
-                this._alert.y = this._isPortraitScreen ? 0 : 660;
-                this._alert.rotation = this._isPortraitScreen ? 0 : -90;
-                this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
-                this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
-                this.addChild(this._alert);
-            }
-        } else if (result["code"] == 2) {
-            //未关注
-            this._rankButton.touchEnabled = true;
-            this._startButton.touchEnabled = true;
-            this.canEnter = 0;
-            //进入关注界面
-            $("#t").css("display","block");
-        }
+        this._attentionView.width = this.stage.stageWidth;
+        this._attentionView.height = this.stage.stageHeight;
+        this.addChild(this._attentionView);
     }
 
 	//关闭alert
-    public cancleButtonClick() {
+    private cancleButtonClick() {
         this._rankButton.touchEnabled = true;
         this._startButton.touchEnabled = true;
         this.removeChild(this._alert);
     }
 
 	//引导分享
-    public shareButtonClick() {
-
+    private shareButtonClick() {
         this.removeChild(this._alert);
 
         //分享引导图
@@ -325,5 +272,19 @@ class Home extends egret.DisplayObjectContainer {
 		this.addChild(_shareGuide);
     }
 
-    //http请求-------end
+    //解析接口包含的参数
+    public  getUrlParams() {
+        var index = this._pageUrl.indexOf("?");
+        var content = this._pageUrl.substring(index);
+        var url = decodeURIComponent(content);
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            var strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);//decodeURI
+            }
+        }
+        return theRequest;
+    }
 }

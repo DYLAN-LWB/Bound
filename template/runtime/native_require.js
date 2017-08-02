@@ -12,12 +12,12 @@ var game_file_list = [
 	"bin-debug/GameBackground.js",
 	"bin-debug/GameSpeedMotion.js",
 	"bin-debug/Home.js",
+	"bin-debug/LoadingUI.js",
+	"bin-debug/Main.js",
 	"bin-debug/Public/Alert.js",
 	"bin-debug/Public/AlertEvent.js",
 	"bin-debug/Public/Bitmap.js",
 	"bin-debug/Public/Info.js",
-	"bin-debug/System/LoadingUI.js",
-	"bin-debug/System/Main.js",
 	//----auto game_file_list end----
 ];
 

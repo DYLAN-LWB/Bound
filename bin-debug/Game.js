@@ -486,26 +486,6 @@ var Game = (function (_super) {
             timer.start();
         }
     };
-    //游戏结束alert-查看排名
-    Game.prototype.checkRanking = function () {
-        console.log("game 查看排名");
-        this.removeChild(this._normalAlert);
-        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
-    };
-    //游戏结束alert-重玩
-    Game.prototype.restartGame = function () {
-        console.log("game 重玩");
-        this.removeChildren();
-        this._scends = 180;
-        this._score = 0;
-        //重玩时清空数组
-        this._stepsArray.splice(0, this._stepsArray.length);
-        this._letterArray.splice(0, this._letterArray.length);
-        this._letterTFArray.splice(0, this._letterTFArray.length);
-        this._letterImgArray.splice(0, this._letterImgArray.length);
-        //重新添加游戏场景
-        this.createGameScene();
-    };
     //接口-增加分数
     Game.prototype.plusScore = function (score) {
         var params = "?vuid=" + this._info._vuid +
@@ -562,7 +542,8 @@ var Game = (function (_super) {
         request.open(this._info._gameover + params, egret.HttpMethod.GET);
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
-            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), "11", "333", 123, this.stage.stageHeight);
+            var result = JSON.parse(request.response);
+            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), result.data.score, result.data.text, 123, this.stage.stageHeight);
             this._normalAlert.x = 250;
             this._normalAlert.y = -100;
             this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
@@ -571,6 +552,26 @@ var Game = (function (_super) {
         }, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
         }, this);
+    };
+    //游戏结束alert-查看排名
+    Game.prototype.checkRanking = function () {
+        console.log("game 查看排名");
+        this.removeChild(this._normalAlert);
+        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
+    };
+    //游戏结束alert-重玩
+    Game.prototype.restartGame = function () {
+        console.log("game 重玩");
+        this.removeChildren();
+        this._scends = 180;
+        this._score = 0;
+        //重玩时清空数组
+        this._stepsArray.splice(0, this._stepsArray.length);
+        this._letterArray.splice(0, this._letterArray.length);
+        this._letterTFArray.splice(0, this._letterTFArray.length);
+        this._letterImgArray.splice(0, this._letterImgArray.length);
+        //重新添加游戏场景
+        this.createGameScene();
     };
     return Game;
 }(egret.DisplayObjectContainer));

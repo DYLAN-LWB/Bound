@@ -11,12 +11,10 @@ var Home = (function (_super) {
     function Home() {
         var _this = _super.call(this) || this;
         _this._playCount = -1; //挑战次数
+        _this._attentionView = new Bitmap("attention_png");
         _this._isPortraitScreen = false; //横竖屏
         _this._info = new Info(); //公用信息表
-        //http请求-------begin
         _this._pageUrl = window.location.href; //获取当前页面地址
-        //获取是否关注
-        _this.canEnter = -1;
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.createGameScene, _this);
         return _this;
     }
@@ -34,8 +32,32 @@ var Home = (function (_super) {
         this.addChild(homeBackground);
         //获取用户相关信息
         this.getUserInfo();
-        //test
-        // this._info._isfrom = "1";
+    };
+    Home.prototype.getUserInfo = function () {
+        //test app url
+        this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
+        //解析url参数
+        var params = this.getUrlParams();
+        this._info._vuid = params["uid"];
+        this._info._key = params["key"];
+        this._info._isfrom = params["isfrom"];
+        this._info._timenum = params["timenum"];
+        this._info._activitynum = params["activitynum"];
+        //保存信息
+        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
+        localStorage.setItem("key", JSON.stringify(this._info._key));
+        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
+        localStorage.setItem("timenum", JSON.stringify(this._info._timenum));
+        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
+        //设置页面
+        this.setupUI();
+        //获取用户剩余挑战次数
+        if (parseInt(this._info._isfrom) == 0) {
+            this.getUserCanPalyNumber();
+        }
+        if (this._info._key == null) {
+            alert("请先登录！");
+        }
     };
     Home.prototype.setupUI = function () {
         //微信=0 app=1
@@ -103,6 +125,7 @@ var Home = (function (_super) {
             this._rankButton.touchEnabled = true;
             this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
+            this.setupAttentionRemind();
         }
     };
     //查看排名
@@ -111,107 +134,53 @@ var Home = (function (_super) {
     };
     //开始游戏
     Home.prototype.startPlayGame = function (evt) {
+        //避免重复点击使游戏次数出错
         this._rankButton.touchEnabled = false;
         this._startButton.touchEnabled = false;
-        //test
-        // this.removeChildren();
-        // var _game = new Game();
-        // this.addChild(_game);
-        // return;
         //微信端检查是否关注
         if (parseInt(this._info._isfrom) == 0) {
             this.checkIsAttention();
         }
         else {
             this.removeChildren();
-            var _game = new Game();
-            this.addChild(_game);
+            this.addChild(new Game());
         }
-    };
-    Home.prototype.getUserInfo = function () {
-        //test app url
-        this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
-        //解析url参数
-        var params = this.getUrlParams();
-        this._info._vuid = params["uid"];
-        this._info._key = params["key"];
-        this._info._isfrom = params["isfrom"];
-        this._info._timenum = params["timenum"];
-        this._info._activitynum = params["activitynum"];
-        //保存信息
-        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
-        localStorage.setItem("key", JSON.stringify(this._info._key));
-        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
-        localStorage.setItem("timenum", JSON.stringify(this._info._timenum));
-        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
-        //设置页面
-        this.setupUI();
-        //获取用户剩余挑战次数
-        this.getUserCanPalyNumber();
-        if (this._info._key == null) {
-            alert("请先登录！");
-        }
-    };
-    //解析接口包含的参数
-    Home.prototype.getUrlParams = function () {
-        var index = this._pageUrl.indexOf("?");
-        var content = this._pageUrl.substring(index);
-        var url = decodeURIComponent(content);
-        var theRequest = new Object();
-        if (url.indexOf("?") != -1) {
-            var str = url.substr(1);
-            var strs = str.split("&");
-            for (var i = 0; i < strs.length; i++) {
-                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]); //decodeURI
-            }
-        }
-        return theRequest;
     };
     //获取用户剩余次数
     Home.prototype.getUserCanPalyNumber = function () {
-        var params = "?vuid=" + this._info._vuid + "&key=" + this._info._key + "&timenum=" + this._info._timenum + "&activitynum=" + this._info._activitynum + "&isfrom=" + this._info._isfrom;
+        var params = "?vuid=" + this._info._vuid +
+            "&key=" + this._info._key +
+            "&timenum=" + this._info._timenum +
+            "&activitynum=" + this._info._activitynum +
+            "&isfrom=" + this._info._isfrom;
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
-        //将参数拼接到url
         request.open(this._info._canPalyNumber + params, egret.HttpMethod.GET);
-        console.log(this._info._canPalyNumber + params);
         request.send();
-        request.addEventListener(egret.Event.COMPLETE, this.getUserCanPalyNumberSuccess, this);
-        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
-            console.log("post error : " + event);
-            this._rankButton.touchEnabled = true;
-            this._startButton.touchEnabled = true;
-        }, this);
-    };
-    //剩余挑战次数
-    Home.prototype.getUserCanPalyNumberSuccess = function (event) {
-        if (parseInt(this._info._isfrom) == 0) {
-            var request = event.currentTarget;
+        request.addEventListener(egret.Event.COMPLETE, function () {
             var result = JSON.parse(request.response);
-            console.log(result["data"]);
-            if (result["code"] == 0) {
-                var isend = result["data"]["isend"];
-                if (isend != 0) {
+            if (result.code == 0) {
+                this._playCount = result.data.num;
+                this._playNumText.text = "您当前有" + this._playCount + "次挑战机会";
+                if (result.data.isend != 0) {
                     this.removeChild(this._startButton);
                     this._overButton = new Bitmap("gamebody_json.ending");
-                    this._overButton.x = 180;
-                    this._overButton.y = 860;
+                    this._overButton.x = this._isPortraitScreen ? 180 : 780;
+                    this._overButton.y = this._isPortraitScreen ? 820 : 570;
+                    this._overButton.rotation = this._isPortraitScreen ? 0 : -90;
                     this._overButton.touchEnabled = true;
                     this._overButton.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
                         alert("活动已结束");
                     }, this);
                     this.addChild(this._overButton);
                 }
-                var num_is = result["data"]["num"];
-                this._playNumText.text = "您当前有" + parseInt(num_is) + "次挑战机会";
-                if (result["data"]["num"] > 0) {
-                    this._playCount = 1;
-                }
-                else {
-                    this._playCount = 0;
-                }
             }
-        }
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+            console.log("post error : " + event);
+            this._rankButton.touchEnabled = true;
+            this._startButton.touchEnabled = true;
+        }, this);
     };
     //检查是否关注
     Home.prototype.checkIsAttention = function () {
@@ -220,44 +189,40 @@ var Home = (function (_super) {
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._hasAttention + params, egret.HttpMethod.GET);
         request.send();
-        request.addEventListener(egret.Event.COMPLETE, this.checkAttentionSuccess, this);
+        request.addEventListener(egret.Event.COMPLETE, function () {
+            var result = JSON.parse(request.response);
+            if (result["code"] == 0) {
+                if (this._playCount > 0) {
+                    this.removeChildren();
+                    this.addChild(new Game());
+                }
+                else {
+                    this._alert = new Alert(Alert.HomePageShare, "", "", "", 0, this.stage.stageHeight);
+                    this._alert.x = this._isPortraitScreen ? 0 : 110;
+                    this._alert.y = this._isPortraitScreen ? 0 : 660;
+                    this._alert.rotation = this._isPortraitScreen ? 0 : -90;
+                    this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
+                    this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
+                    this.addChild(this._alert);
+                }
+            }
+            else if (result["code"] == 2) {
+                this.setupAttentionRemind();
+            }
+        }, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
             alert("post error : " + event);
             this._rankButton.touchEnabled = true;
             this._startButton.touchEnabled = true;
         }, this);
     };
-    Home.prototype.checkAttentionSuccess = function (event) {
-        var request = event.currentTarget;
-        var result = JSON.parse(request.response);
-        alert(result["code"]);
-        if (result["code"] == 0) {
-            //已关注
-            this.canEnter = 1;
-            if (this._playCount > 0) {
-                //减掉游戏次数
-                this.removeChildren();
-                var _game = new Game();
-                this.addChild(_game);
-            }
-            else {
-                this._alert = new Alert(Alert.HomePageShare, "", "", "", 0, this.stage.stageHeight);
-                this._alert.x = this._isPortraitScreen ? 0 : 110;
-                this._alert.y = this._isPortraitScreen ? 0 : 660;
-                this._alert.rotation = this._isPortraitScreen ? 0 : -90;
-                this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
-                this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
-                this.addChild(this._alert);
-            }
-        }
-        else if (result["code"] == 2) {
-            //未关注
-            this._rankButton.touchEnabled = true;
-            this._startButton.touchEnabled = true;
-            this.canEnter = 0;
-            //进入关注界面
-            $("#t").css("display", "block");
-        }
+    Home.prototype.setupAttentionRemind = function () {
+        this._rankButton.touchEnabled = true;
+        this._startButton.touchEnabled = true;
+        alert("请先关注公众号");
+        this._attentionView.width = this.stage.stageWidth;
+        this._attentionView.height = this.stage.stageHeight;
+        this.addChild(this._attentionView);
     };
     //关闭alert
     Home.prototype.cancleButtonClick = function () {
@@ -283,6 +248,21 @@ var Home = (function (_super) {
             this._startButton.touchEnabled = true;
         }, this);
         this.addChild(_shareGuide);
+    };
+    //解析接口包含的参数
+    Home.prototype.getUrlParams = function () {
+        var index = this._pageUrl.indexOf("?");
+        var content = this._pageUrl.substring(index);
+        var url = decodeURIComponent(content);
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            var strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]); //decodeURI
+            }
+        }
+        return theRequest;
     };
     return Home;
 }(egret.DisplayObjectContainer));

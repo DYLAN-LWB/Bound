@@ -18,13 +18,13 @@ var GameBackground = (function (_super) {
         _this.addChild(background);
         var cloud1 = _this.createBitmapByName("yun01_png");
         cloud1.x = 20;
-        cloud1.y = 111;
+        cloud1.y = 200;
         cloud1.width = 97;
         cloud1.height = 70;
         _this.addChild(cloud1);
         egret.Tween.get(cloud1, { loop: true }).to({ x: stageW }, 35000).to({ x: -100 }, 35000);
         var cloud2 = _this.createBitmapByName("yun03_png");
-        cloud2.x = 200;
+        cloud2.x = 250;
         cloud2.y = 211;
         cloud2.width = 144;
         cloud2.height = 82;

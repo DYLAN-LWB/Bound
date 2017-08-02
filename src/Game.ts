@@ -1,6 +1,7 @@
 class Game extends egret.DisplayObjectContainer {
 
 	//USER
+    private _info = new Info(); //公用信息表
 
 	//public
 	private _totalStepCount = 5;			//台阶数量
@@ -8,7 +9,7 @@ class Game extends egret.DisplayObjectContainer {
 	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
 	private _score = 0;						//走的总米数
 	private _scoreTF: egret.TextField;		//米数文字
-	private _scends = 20;					//游戏默认180秒
+	private _scends = 5;					//游戏默认180秒
 	private _scendsTF: egret.TextField;		//倒计时文字
 	private _gameTimer: egret.Timer;		//游戏倒计时计时器
 	private _countdownChannel: egret.SoundChannel;	//倒计时结束的声音
@@ -47,11 +48,11 @@ class Game extends egret.DisplayObjectContainer {
 
 	public constructor() {
         super();
-        this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
+        this.addEventListener(egret.Event.ADDED_TO_STAGE, this.createGameScene, this);
     }
 
 
-    private onAddToStage(event: egret.Event) {
+    private createGameScene() {
 
 		//游戏背景
 		let _gameBackground = new GameBackground(this.stage.stageWidth, this.stage.stageHeight);
@@ -71,10 +72,15 @@ class Game extends egret.DisplayObjectContainer {
 
 		//添加touch事件
 		this.addTouchEvent();
+
+		//减游戏次数
     }
+
+
 
 	//设置台阶
 	private setupSteps() {
+
 		//第一个台阶特殊 手动创建
 		let firstStep = new Bitmap("ladder_png");
 		firstStep.width = 120;
@@ -145,6 +151,15 @@ class Game extends egret.DisplayObjectContainer {
 		//设置弹跳对象初始坐标
 		this._personBeginPoint.x = this._person.x + this._personWH/2;
 		this._personBeginPoint.y = this._person.y + this._personWH;
+
+
+		//指示箭头提示
+		this._guideArrow = new Bitmap("ladder_png");
+		this._guideArrow.y = this._personBeginPoint.y;
+		this._guideArrow.x = this._personBeginPoint.x;
+		this._guideArrow.width = 0;
+		this._guideArrow.height = 0;
+		// this.addChild(this._guideArrow);
 	}
 
 	//设置提示文字,分数,倒计时
@@ -200,13 +215,6 @@ class Game extends egret.DisplayObjectContainer {
 		sound.load("resource/sound/bg.mp3");
 
 
-		//指示箭头提示
-		this._guideArrow = new Bitmap("ladder_png");
-		this._guideArrow.y = this._personBeginPoint.y;
-		this._guideArrow.x = this._personBeginPoint.x;
-		this._guideArrow.width = 0;
-		this._guideArrow.height = 0;
-		// this.addChild(this._guideArrow);
 	}
 
 	//每秒计时
@@ -227,6 +235,17 @@ class Game extends egret.DisplayObjectContainer {
 
 	//计时完成 游戏结束
 	private gameTimerCompleteFunc () {
+
+		this.removeTouchEvent();
+
+		this._normalAlert = new Alert(Alert.GamePageScore, "111","11", "333",123,this.stage.stageHeight);
+		this._normalAlert.x = 250;
+		this._normalAlert.y = -100;
+		this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+		this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+		this.addChild(this._normalAlert);
+
+
         if (this._countdownChannel) this._countdownChannel.stop();
 		if (this._backgroundChannel) this._backgroundChannel.stop();
 		if (this._gameTimer) this._gameTimer.stop();
@@ -373,16 +392,6 @@ class Game extends egret.DisplayObjectContainer {
 				this._lifeCount -= 1;
 
 				if(this._lifeCount == 0) {
-					// _normalAlert("game over");
-					this._normalAlert = new Alert(Alert.GamePageScore, "111","11", "333",123,this.stage.stageHeight);
-			
-					this._normalAlert.x = 0;
-					this._normalAlert.y = 0;
-					this.addChild(this._normalAlert);
-
-					this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
-					this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
-
 					this.gameTimerCompleteFunc();
 				}
 
@@ -513,7 +522,7 @@ class Game extends egret.DisplayObjectContainer {
 			};
 		}
 
-		console.log(this._hitIndex);
+		console.log("this._hitIndex = " + this._hitIndex);
 		//删除跳跃过的数据
 		this._letterTFArray.splice(0, this._hitIndex);
 		this._letterImgArray.splice(0, this._hitIndex);
@@ -601,21 +610,30 @@ class Game extends egret.DisplayObjectContainer {
 
 	//游戏结束alert-查看排名
 	public checkRanking() {
-		console.log("game checkRanking");
+		console.log("game 查看排名");
 
-        // this.removeChild(this._normalAlert);
-        // window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this.timenum + "/activitynum/" + this.activitynum + "/vuid/" + this._vuid + "/key/" + this._key + "/isfrom/" + this.isfrom;
+        this.removeChild(this._normalAlert);
+        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     }
 
 	//游戏结束alert-重玩
     public restartGame() {
 
-		console.log("game restartGame");
-        // this.removeChildren();
-        // this._scends = 180;
-        // this.Score = 0;
-        // this._isGameOver = true;
-        // this.downNum(this._vuid, this._key);
+		console.log("game 重玩");
+        this.removeChildren();
+        this._scends = 180;
+        this._score = 0;
+        this._isGameOver = true;
+
+		//重玩时清空数组
+		this._stepsArray.splice(0, this._stepsArray.length);
+		this._letterArray.splice(0, this._letterArray.length);
+		this._letterTFArray.splice(0, this._letterTFArray.length);
+		this._letterImgArray.splice(0, this._letterImgArray.length);
+
+		this.createGameScene();
+
+	
     }
 
 	//请求单词接口

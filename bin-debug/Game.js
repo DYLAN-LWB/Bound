@@ -11,12 +11,13 @@ var Game = (function (_super) {
     function Game() {
         var _this = _super.call(this) || this;
         //USER
+        _this._info = new Info(); //公用信息表
         //public
         _this._totalStepCount = 5; //台阶数量
         _this._lifeCount = 111; //x条命
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
         _this._score = 0; //走的总米数
-        _this._scends = 20; //游戏默认180秒
+        _this._scends = 5; //游戏默认180秒
         _this._isGameOver = true; //游戏是否结束
         _this._stepsArray = []; //阶梯数组
         _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
@@ -32,10 +33,10 @@ var Game = (function (_super) {
         _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
         _this._guideMaxLength = 150; //箭头的最大长度
         _this._isHit = false; //如果未碰撞到,恢复对象位置
-        _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
+        _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.createGameScene, _this);
         return _this;
     }
-    Game.prototype.onAddToStage = function (event) {
+    Game.prototype.createGameScene = function () {
         //游戏背景
         var _gameBackground = new GameBackground(this.stage.stageWidth, this.stage.stageHeight);
         this.addChild(_gameBackground);
@@ -49,6 +50,7 @@ var Game = (function (_super) {
         this.setupReminder();
         //添加touch事件
         this.addTouchEvent();
+        //减游戏次数
     };
     //设置台阶
     Game.prototype.setupSteps = function () {
@@ -110,6 +112,13 @@ var Game = (function (_super) {
         //设置弹跳对象初始坐标
         this._personBeginPoint.x = this._person.x + this._personWH / 2;
         this._personBeginPoint.y = this._person.y + this._personWH;
+        //指示箭头提示
+        this._guideArrow = new Bitmap("ladder_png");
+        this._guideArrow.y = this._personBeginPoint.y;
+        this._guideArrow.x = this._personBeginPoint.x;
+        this._guideArrow.width = 0;
+        this._guideArrow.height = 0;
+        // this.addChild(this._guideArrow);
     };
     //设置提示文字,分数,倒计时
     Game.prototype.setupReminder = function () {
@@ -158,13 +167,6 @@ var Game = (function (_super) {
             this._backgroundChannel.volume = 0.7;
         }, this);
         sound.load("resource/sound/bg.mp3");
-        //指示箭头提示
-        this._guideArrow = new Bitmap("ladder_png");
-        this._guideArrow.y = this._personBeginPoint.y;
-        this._guideArrow.x = this._personBeginPoint.x;
-        this._guideArrow.width = 0;
-        this._guideArrow.height = 0;
-        // this.addChild(this._guideArrow);
     };
     //每秒计时
     Game.prototype.gameTimerFunc = function () {
@@ -181,6 +183,13 @@ var Game = (function (_super) {
     };
     //计时完成 游戏结束
     Game.prototype.gameTimerCompleteFunc = function () {
+        this.removeTouchEvent();
+        this._normalAlert = new Alert(Alert.GamePageScore, "111", "11", "333", 123, this.stage.stageHeight);
+        this._normalAlert.x = 250;
+        this._normalAlert.y = -100;
+        this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+        this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+        this.addChild(this._normalAlert);
         if (this._countdownChannel)
             this._countdownChannel.stop();
         if (this._backgroundChannel)
@@ -299,13 +308,6 @@ var Game = (function (_super) {
                 this._person.y = this._personTopY;
                 this._lifeCount -= 1;
                 if (this._lifeCount == 0) {
-                    // _normalAlert("game over");
-                    this._normalAlert = new Alert(Alert.GamePageScore, "111", "11", "333", 123, this.stage.stageHeight);
-                    this._normalAlert.x = 0;
-                    this._normalAlert.y = 0;
-                    this.addChild(this._normalAlert);
-                    this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
-                    this._normalAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
                     this.gameTimerCompleteFunc();
                 }
                 //掉下去的声音
@@ -416,7 +418,7 @@ var Game = (function (_super) {
             }
             ;
         }
-        console.log(this._hitIndex);
+        console.log("this._hitIndex = " + this._hitIndex);
         //删除跳跃过的数据
         this._letterTFArray.splice(0, this._hitIndex);
         this._letterImgArray.splice(0, this._hitIndex);
@@ -479,18 +481,23 @@ var Game = (function (_super) {
     };
     //游戏结束alert-查看排名
     Game.prototype.checkRanking = function () {
-        console.log("game checkRanking");
-        // this.removeChild(this._normalAlert);
-        // window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this.timenum + "/activitynum/" + this.activitynum + "/vuid/" + this._vuid + "/key/" + this._key + "/isfrom/" + this.isfrom;
+        console.log("game 查看排名");
+        this.removeChild(this._normalAlert);
+        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     };
     //游戏结束alert-重玩
     Game.prototype.restartGame = function () {
-        console.log("game restartGame");
-        // this.removeChildren();
-        // this._scends = 180;
-        // this.Score = 0;
-        // this._isGameOver = true;
-        // this.downNum(this._vuid, this._key);
+        console.log("game 重玩");
+        this.removeChildren();
+        this._scends = 180;
+        this._score = 0;
+        this._isGameOver = true;
+        //重玩时清空数组
+        this._stepsArray.splice(0, this._stepsArray.length);
+        this._letterArray.splice(0, this._letterArray.length);
+        this._letterTFArray.splice(0, this._letterTFArray.length);
+        this._letterImgArray.splice(0, this._letterImgArray.length);
+        this.createGameScene();
     };
     //请求单词接口
     Game.prototype.getWords = function () {

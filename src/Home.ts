@@ -37,6 +37,10 @@ class Home extends egret.DisplayObjectContainer {
 		//test
 		// this._info._isfrom = "1";
 
+
+    }
+
+    private setupUI() {
 		//微信=0 app=1
         if (parseInt(this._info._isfrom) == 0) {
             var introduce = new egret.TextField();
@@ -107,6 +111,7 @@ class Home extends egret.DisplayObjectContainer {
             this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
         }
+
     }
 
 	//查看排名
@@ -143,7 +148,7 @@ class Home extends egret.DisplayObjectContainer {
     public getUserInfo() {
 
         //test app url
-		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
+		this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
 
         var params = this.getUrlParams();
         this._info._key = params["key"];
@@ -152,8 +157,8 @@ class Home extends egret.DisplayObjectContainer {
         this._info._timenum = params["timenum"];
         this._info._activitynum = params["activitynum"];
 
-        //test
-        console.log(this._info);
+        //设置页面
+        this.setupUI();
 
         //获取用户剩余挑战次数
         this.getUserCanPalyNumber();

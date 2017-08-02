@@ -36,6 +36,8 @@ var Home = (function (_super) {
         this.getUserInfo();
         //test
         // this._info._isfrom = "1";
+    };
+    Home.prototype.setupUI = function () {
         //微信=0 app=1
         if (parseInt(this._info._isfrom) == 0) {
             var introduce = new egret.TextField();
@@ -128,15 +130,15 @@ var Home = (function (_super) {
     };
     Home.prototype.getUserInfo = function () {
         //test app url
-        // this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
+        this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
         var params = this.getUrlParams();
         this._info._key = params["key"];
         this._info._vuid = params["uid"];
         this._info._isfrom = params["isfrom"];
         this._info._timenum = params["timenum"];
         this._info._activitynum = params["activitynum"];
-        //test
-        console.log(this._info);
+        //设置页面
+        this.setupUI();
         //获取用户剩余挑战次数
         this.getUserCanPalyNumber();
         if (this._info._key == null) {

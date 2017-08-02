@@ -15,14 +15,14 @@ class GameBackground extends egret.Sprite {
 
         let cloud1 = this.createBitmapByName("yun01_png");
         cloud1.x = 20;
-        cloud1.y = 111;
+        cloud1.y = 200;
         cloud1.width = 97;
         cloud1.height = 70;
         this.addChild(cloud1);
         egret.Tween.get(cloud1, {loop:true}).to({x:stageW}, 35000).to({x:-100}, 35000);
 
         let cloud2 = this.createBitmapByName("yun03_png");
-        cloud2.x = 200;
+        cloud2.x = 250;
         cloud2.y = 211;
         cloud2.width = 144;
         cloud2.height = 82;

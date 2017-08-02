@@ -19,15 +19,27 @@ var Home = (function (_super) {
     }
     Home.prototype.createGameScene = function () {
         //屏幕适配
-        if (/(Android)/i.test(navigator.userAgent)) {
-            this.stage.setContentSize(this._isPortraitScreen ? 750 : 1196, this._isPortraitScreen ? 1196 : 750);
+        // if (/(Android)/i.test(navigator.userAgent)) {
+        //     this.stage.setContentSize(this._isPortraitScreen ? 750 : 1196, this._isPortraitScreen ? 1196 : 750);
+        // } else {
+        //     this.stage.setContentSize(this._isPortraitScreen ? 750 : 1218, this._isPortraitScreen ? 1218 : 750);
+        // }
+        var ua = window.navigator.userAgent.toLowerCase();
+        if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+            this.stage.setContentSize(1218, 750);
         }
         else {
-            this.stage.setContentSize(this._isPortraitScreen ? 750 : 1218, this._isPortraitScreen ? 1218 : 750);
+            if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+                this.stage.setContentSize(1218, 750);
+            }
+            else if (/(Android)/i.test(navigator.userAgent)) {
+                this.stage.setContentSize(1334, 750);
+            }
         }
         //设置背景
         var homeBackground = new Bitmap("bg_png");
         homeBackground.width = this.stage.stageWidth;
+        homeBackground.height = this.stage.stageHeight;
         this.addChild(homeBackground);
         //获取用户相关信息
         this.getUserInfo();
@@ -161,10 +173,10 @@ var Home = (function (_super) {
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
             var result = JSON.parse(request.response);
-            if (result.code == 0) {
-                this._playCount = result.data.num;
+            if (result["code"] == 0) {
+                this._playCount = result["data"]["num"];
                 this._playNumText.text = "您当前有" + this._playCount + "次挑战机会";
-                if (result.data.isend != 0) {
+                if (result["data"]["isend"] != 0) {
                     this.removeChild(this._startButton);
                     this._overButton = new Bitmap("gamebody_json.ending");
                     this._overButton.x = this._isPortraitScreen ? 180 : 780;

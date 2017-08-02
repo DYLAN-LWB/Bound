@@ -8,7 +8,7 @@ class Info  {
     public _downnum:string = this._url + "/typos/numdown5";     //减游戏次数
     public _gameover:string = this._url + "/typos/GameOver";    //游戏结束
     public _typosTempjump:string = this._url + "/typos/typosTempjump";  //加分
-
+    public _getWord:string = this._url + "/typos/getjumpwords";  //加分
 
     public _vuid:string;    //用户id
     public _key:string;     //用户key

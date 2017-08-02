@@ -10,7 +10,6 @@ class Home extends egret.DisplayObjectContainer {
     private _rankButton;	//查看排名
     private _alert;	        //弹窗提示
     private _playCount = -1;  //挑战次数
-    private _attentionView = new Bitmap("attention_png");
 
     private _isPortraitScreen: boolean = false; //横竖屏
     private _info = new Info(); //公用信息表
@@ -37,8 +36,9 @@ class Home extends egret.DisplayObjectContainer {
      public getUserInfo() {
 
         //test app url
-		this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=1&activitynum=9&timenum=1";
-
+		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
+        this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=0&activitynum=9&timenum=1";
+        alert("this._pageUrl = "+this._pageUrl);
         //解析url参数
         var params = this.getUrlParams();
         this._info._vuid = params["uid"];
@@ -99,7 +99,7 @@ class Home extends egret.DisplayObjectContainer {
             this._playNumText.textColor = 0x275b51;
             this._playNumText.anchorOffsetX = this._playNumText.width / 2;
             this._playNumText.anchorOffsetY = this._playNumText.height / 2;
-            // this._playNumText.text = "您当前有0次挑战机会";
+            this._playNumText.text = "您当前有0次挑战机会";
             this.addChild(this._playNumText);
 
             //开始游戏按钮
@@ -137,20 +137,20 @@ class Home extends egret.DisplayObjectContainer {
             this._rankButton.touchEnabled = true;
             this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
             this.addChild(this._rankButton);
-
-            this.setupAttentionRemind();
         }
 
     }
 
 	//查看排名
     private checkRanking(evt:egret.TouchEvent) {
+        console.log("查看排名");
         window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     }
 
 	//开始游戏
     private startPlayGame(evt:egret.TouchEvent) {
 
+        console.log("开始游戏");
         //避免重复点击使游戏次数出错
         this._rankButton.touchEnabled = false;
         this._startButton.touchEnabled = false;
@@ -195,7 +195,7 @@ class Home extends egret.DisplayObjectContainer {
             }
         }, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
-            console.log("post error : " + event);
+            alert("post error : " + event);
             this._rankButton.touchEnabled = true;
             this._startButton.touchEnabled = true;
         }, this);
@@ -218,14 +218,16 @@ class Home extends egret.DisplayObjectContainer {
                 } else { //弹窗获取次数, 没有跳转次数点击开始游戏时提示分享
                     this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight);
                     this._alert.x = this._isPortraitScreen ? 0 : 110;
-                    this._alert.y = this._isPortraitScreen ? 0 : 660;
+                    this._alert.y = this._isPortraitScreen ? 0 : 750;
                     this._alert.rotation = this._isPortraitScreen ? 0 : -90;
                     this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
                     this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
                     this.addChild(this._alert);
                 }
             } else if (result["code"] == 2) { //未关注 进入关注界面
-                this.setupAttentionRemind();
+                this._rankButton.touchEnabled = true;
+                this._startButton.touchEnabled = true;
+                document.getElementById("attention").style.display = "block";
             }
 
         }, this);
@@ -234,14 +236,6 @@ class Home extends egret.DisplayObjectContainer {
             this._rankButton.touchEnabled = true;
             this._startButton.touchEnabled = true;
         }, this);
-    }
-    private setupAttentionRemind() {
-        this._rankButton.touchEnabled = true;
-        this._startButton.touchEnabled = true;
-
-        this._attentionView.width = this.stage.stageWidth;
-        this._attentionView.height = this.stage.stageHeight;
-        this.addChild(this._attentionView);
     }
 
 	//关闭alert

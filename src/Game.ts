@@ -30,7 +30,7 @@ class Game extends egret.DisplayObjectContainer {
 	private _person = new Bitmap("beibei_png");			//弹跳对象
 	private _personBeginPoint = new egret.Point(0,0);	//对象出发点
 	private _personTopY = 350;		//对象的Y值,控制弹跳对象和台阶
-	private _personWH = 80;			//对象宽高
+	private _personWH = 110;			//对象宽高
 
 	private _guideLine = new egret.Shape();				//线条引导
 	private _guideArrow = new Bitmap("ladder_png");		//箭头引导
@@ -132,10 +132,10 @@ class Game extends egret.DisplayObjectContainer {
 
 			//添加字母图片
 			let _letterImg = new Bitmap("letter_json." + _letterTF.text);
-            _letterImg.width = 40;
-            _letterImg.height = 40;
-			_letterImg.y = _step.y - 40;
-			_letterImg.x = _step.x + 40;
+       		_letterImg.width = 60;
+            _letterImg.height = 60;
+			_letterImg.y = _step.y - 60;
+			_letterImg.x = _step.x + 30;
             this.addChild(_letterImg);
 
 			//添加到字母图片数组
@@ -344,10 +344,11 @@ class Game extends egret.DisplayObjectContainer {
 		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2 - 10;
 
 		//画箭头
- 		this._guideLine.graphics.lineStyle(5,0xFFFFFF);
+ 		this._guideLine.graphics.lineStyle(2,0x000000);
         this._guideLine.graphics.moveTo(this._personBeginPoint.x, this._personBeginPoint.y);	//起点
 		this._guideLine.graphics.curveTo(controlX, controlY, this._touchMoveToX, this._touchMoveToY);	//控制点,终点
         this._guideLine.graphics.endFill();
+		this._guideLine.alpha = 0.2;
         this.addChild(this._guideLine);
 	}
 
@@ -507,6 +508,9 @@ class Game extends egret.DisplayObjectContainer {
 	//台阶,字母移动动画结束
 	private stepTweenComplete(){
 
+		if(this._scends < 0){
+			return;
+		}
 		//删除0到i(脚下之前)的台阶 
 		for(let i = 0; i < this._hitIndex; i++ ) {
 			if(this._stepsArray[i] && this._stepsArray[i].parent) {
@@ -565,10 +569,10 @@ class Game extends egret.DisplayObjectContainer {
 
 			//添加字母图片
 			let _letterImg = new Bitmap("letter_json." + _letterTF.text);
-            _letterImg.width = 40;
-            _letterImg.height = 40;
-			_letterImg.y = _step.y - 40;
-			_letterImg.x = _step.x + 40;
+       		_letterImg.width = 60;
+            _letterImg.height = 60;
+			_letterImg.y = _step.y - 60;
+			_letterImg.x = _step.x + 30;
             this.addChild(_letterImg);
 
 			//添加到字母图片数组
@@ -622,7 +626,7 @@ class Game extends egret.DisplayObjectContainer {
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._typosTempjump, egret.HttpMethod.POST);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.send(score);
+        request.send(params);
 		request.addEventListener(egret.Event.COMPLETE, function() {
 			console.log(JSON.parse(request.response));
 		}, this);
@@ -646,7 +650,9 @@ class Game extends egret.DisplayObjectContainer {
         request.addEventListener(egret.Event.COMPLETE, function() {
 			console.log(JSON.parse(request.response));
 			let result = JSON.parse(request.response);
-			this._linnum = parseInt(result.data.linnum);
+			this._linnum = parseInt(result["data"]["linnum"]);
+			this._rands = parseInt(result["data"]["rands"]);
+			this._tid = parseInt(result["data"]["tid"]);
 		}, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
 
@@ -671,7 +677,7 @@ class Game extends egret.DisplayObjectContainer {
 		request.addEventListener(egret.Event.COMPLETE, function() {
 
 			let result = JSON.parse(request.response);
-			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), result.data.score, result.data.text,123,this.stage.stageHeight);
+			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), result["data"]["score"],result["data"]["order"], result["data"]["text"],this.stage.stageHeight);
 			this._normalAlert.x = 250;
 			this._normalAlert.y = -100;
 			this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);

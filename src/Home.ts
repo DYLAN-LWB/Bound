@@ -45,7 +45,7 @@ class Home extends egret.DisplayObjectContainer {
 
         //test app url
 		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
-        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=0&activitynum=9&timenum=1";
+        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=1&activitynum=9&timenum=1";
 
         // alert("this._pageUrl = " + this._pageUrl);
         //解析url参数
@@ -62,6 +62,15 @@ class Home extends egret.DisplayObjectContainer {
         localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
         localStorage.setItem("timenum", JSON.stringify(this._info._timenum))
         localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
+
+        //app在排行榜点击重玩 会重新加载首页, 没有id key
+        if(this._info._key.length < 8) {
+            this._info._vuid = localStorage.getItem("vuid").replace(/"/g,"");
+            this._info._key = localStorage.getItem("key").replace(/"/g,"");
+		    this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g,"");
+		    this._info._timenum = localStorage.getItem("timenum").replace(/"/g,"");
+		    this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g,"");
+        }
 
         //设置页面
         this.setupUI();

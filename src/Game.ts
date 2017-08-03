@@ -730,12 +730,12 @@ class Game extends egret.DisplayObjectContainer {
 
 		let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
-        request.open(this._info._typosTempjump, egret.HttpMethod.POST);
+        request.open(this._info._typosTempjump+params, egret.HttpMethod.GET);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.send(params);
+        request.send();
 		request.addEventListener(egret.Event.COMPLETE, function() {
 			let result = JSON.parse(request.response);
-			// alert(result["code"]);
+			alert(this._info._typosTempjump + "---"+ params + "---"+result["code"] + "---"+result["msg"]);
 			console.log(result);
 		}, this);
 		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {

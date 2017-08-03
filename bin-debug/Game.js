@@ -14,8 +14,8 @@ var Game = (function (_super) {
         _this._info = new Info(); //公用信息表
         //public
         _this._totalStepCount = 5; //台阶数量
-        _this._lifeCount = 555; //x条命
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
+        _this._lifeCount = 10; //x条命
         _this._score = 0; //走的总米数
         _this._stepsArray = []; //阶梯数组
         _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
@@ -203,6 +203,17 @@ var Game = (function (_super) {
         this._scoreTF.text = "您已经走了" + this._score + "米";
         this._scoreTF.fontFamily = "Microsoft YaHei";
         this.addChild(this._scoreTF);
+        this._lifeTF = new egret.TextField();
+        this._lifeTF.x = this.stage.stageWidth * 0.05;
+        this._lifeTF.y = 30;
+        this._lifeTF.width = this.stage.stageWidth * 0.2;
+        this._lifeTF.height = 50;
+        this._lifeTF.textColor = 0xff6600;
+        this._lifeTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._lifeTF.size = 25;
+        this._lifeTF.text = "您还有" + this._lifeCount + "条命";
+        this._lifeTF.fontFamily = "Microsoft YaHei";
+        this.addChild(this._lifeTF);
         // //倒计时提示
         // this._scendsTF = new egret.TextField();
         // this._scendsTF.x = this.stage.stageWidth*0.75;
@@ -361,7 +372,9 @@ var Game = (function (_super) {
                 this._person.x = firstStep.x + firstStep.width / 2 - this._person.width / 2;
                 this._person.y = this._personTopY;
                 this._lifeCount -= 1;
+                this._lifeTF.text = "您还有" + this._lifeCount + "条命";
                 if (this._lifeCount == 0) {
+                    this._lifeTF.text = "";
                     this.gameTimerCompleteFunc();
                 }
                 //掉下去的声音
@@ -534,9 +547,6 @@ var Game = (function (_super) {
     };
     Game.prototype.addLetter = function (letter) {
         var word = this._wordTF.text.replace("单词：", "");
-        // if(word.length == 11) {
-        // 	this._wordTF.text = "单词：";
-        // }
         this._wordTF.text += letter;
         for (var i = 0; i < this._allWords.length; i++) {
             var check = this._allWords[i].replace(".", "").replace(" ", "").toLowerCase();
@@ -544,7 +554,6 @@ var Game = (function (_super) {
         }
     };
     Game.prototype.checkWord = function (word) {
-        // console.log("checkWord"+ word + "----" +this._wordTF.text.replace("单词：",""));
         if (this._wordTF.text.replace("单词：", "").replace(".", "") == word) {
             this.removeTouchEvent();
             //增加分数
@@ -656,7 +665,11 @@ var Game = (function (_super) {
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
             var result = JSON.parse(request.response);
-            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), result["data"]["score"], result["data"]["order"], result["data"]["text"], this.stage.stageHeight);
+            var highScore = result["data"]["score"];
+            if (this._score > parseInt(highScore)) {
+                highScore = this._score;
+            }
+            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore, result["data"]["order"], result["data"]["text"], this.stage.stageHeight);
             this._normalAlert.x = 250;
             this._normalAlert.y = -100;
             this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);

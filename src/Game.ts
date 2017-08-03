@@ -8,17 +8,18 @@ class Game extends egret.DisplayObjectContainer {
 
 	//public
 	private _totalStepCount = 5;			//台阶数量
-	private _lifeCount = 555;					//x条命
 	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
+	private _lifeCount = 10;					//x条命
+	private _lifeTF: egret.TextField;		//米数文字
 	private _score = 0;						//走的总米数
 	private _scoreTF: egret.TextField;		//米数文字
+	private _wordTF: egret.TextField;		//提示完成的单词
 	// private _scends = 180;					//游戏默认180秒
 	// private _scendsTF: egret.TextField;		//倒计时文字
-	// private _gameTimer: egret.Timer;		//游戏倒计时计时器
+	// private _gameTimer: egret.Timer;			//游戏倒计时计时器
 	// private _countdownChannel: egret.SoundChannel;	//倒计时结束的声音
 	private _hitIndex: number;				//碰撞到的台阶,在当前台阶数组的index
 	private _backgroundChannel: egret.SoundChannel;	//游戏背景音乐
-	private _wordTF: egret.TextField;		//提示完成的单词
 
 	private _stepsArray = [];			//阶梯数组
 	private _letterArray = [];			//字母数组只在每次新增台阶之后删除对象数量的字母
@@ -253,6 +254,17 @@ class Game extends egret.DisplayObjectContainer {
 		this._scoreTF.fontFamily = "Microsoft YaHei"
         this.addChild(this._scoreTF);
 
+		this._lifeTF = new egret.TextField();
+		this._lifeTF.x = this.stage.stageWidth*0.05;
+		this._lifeTF.y = 30;
+		this._lifeTF.width = this.stage.stageWidth*0.2;
+		this._lifeTF.height = 50;
+        this._lifeTF.textColor = 0xff6600;
+		this._lifeTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._lifeTF.size = 25;
+        this._lifeTF.text = "您还有"+this._lifeCount+"条命";
+		this._lifeTF.fontFamily = "Microsoft YaHei"
+        this.addChild(this._lifeTF);
 
 
 		// //倒计时提示
@@ -450,8 +462,9 @@ class Game extends egret.DisplayObjectContainer {
 				this._person.y = this._personTopY;
 
 				this._lifeCount -= 1;
-
+        		this._lifeTF.text = "您还有"+this._lifeCount+"条命";
 				if(this._lifeCount == 0) {
+					this._lifeTF.text = "";
 					this.gameTimerCompleteFunc();
 				}
 
@@ -662,9 +675,6 @@ class Game extends egret.DisplayObjectContainer {
 
 	private addLetter(letter:string) {
 		let word = this._wordTF.text.replace("单词：","");
-		// if(word.length == 11) {
-		// 	this._wordTF.text = "单词：";
-		// }
 		this._wordTF.text += letter;
 
 		for(let i = 0; i < this._allWords.length; i++) {
@@ -674,7 +684,6 @@ class Game extends egret.DisplayObjectContainer {
 	}
 
 	private checkWord(word: string) {
-		// console.log("checkWord"+ word + "----" +this._wordTF.text.replace("单词：",""));
 
 		if(this._wordTF.text.replace("单词：","").replace(".","") == word){
 
@@ -803,7 +812,12 @@ class Game extends egret.DisplayObjectContainer {
 		request.addEventListener(egret.Event.COMPLETE, function() {
 
 			let result = JSON.parse(request.response);
-			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), result["data"]["score"],result["data"]["order"], result["data"]["text"],this.stage.stageHeight);
+
+			let highScore = result["data"]["score"];
+			if(this._score > parseInt(highScore)){
+				highScore = this._score;
+			}
+			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore,result["data"]["order"], result["data"]["text"],this.stage.stageHeight);
 			this._normalAlert.x = 250;
 			this._normalAlert.y = -100;
 			this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);

@@ -19,8 +19,8 @@ var GameSpeedMotion = (function (_super) {
         _this._person.x = 145;
         _this._person.y = 350;
         _this.addChildAt(_this._person, 99);
-        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1200).call(function () {
-            egret.Tween.get(this._person).to({ x: 145, y: 350 }, 300);
+        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1300).call(function () {
+            egret.Tween.get(this._person).to({ x: 145, y: 350 }, 200);
         }, _this);
         var timer = new egret.Timer(300, _this.count);
         timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);

@@ -19,7 +19,9 @@ var GameSpeedMotion = (function (_super) {
         _this._person.x = 145;
         _this._person.y = 350;
         _this.addChildAt(_this._person, 99);
-        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1000);
+        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1200).call(function () {
+            egret.Tween.get(this._person).to({ x: 145, y: 350 }, 300);
+        }, _this);
         var timer = new egret.Timer(300, _this.count);
         timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);
         timer.start();
@@ -40,6 +42,7 @@ var GameSpeedMotion = (function (_super) {
         this.speedImage = new Bitmap("speed1_png");
         this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
+        this.swapChildren(this.speedImage, this._person);
         var timer1 = new egret.Timer(100, 1);
         timer1.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc1, this);
         timer1.start();
@@ -52,6 +55,7 @@ var GameSpeedMotion = (function (_super) {
         this.speedImage = new Bitmap("speed2_png");
         this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
+        this.swapChildren(this.speedImage, this._person);
         var timer2 = new egret.Timer(100, 1);
         timer2.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc2, this);
         timer2.start();
@@ -64,6 +68,7 @@ var GameSpeedMotion = (function (_super) {
         this.speedImage = new Bitmap("speed3_png");
         this.speedImage.width = this._stageW;
         this.addChild(this.speedImage);
+        this.swapChildren(this.speedImage, this._person);
         if (this.index == this.count) {
             if (this.speedImage && this.speedImage.parent) {
                 this.speedImage.parent.removeChild(this.speedImage);

@@ -534,9 +534,9 @@ var Game = (function (_super) {
     };
     Game.prototype.addLetter = function (letter) {
         var word = this._wordTF.text.replace("单词：", "");
-        if (word.length == 11) {
-            this._wordTF.text = "单词：";
-        }
+        // if(word.length == 11) {
+        // 	this._wordTF.text = "单词：";
+        // }
         this._wordTF.text += letter;
         for (var i = 0; i < this._allWords.length; i++) {
             var check = this._allWords[i].replace(".", "").replace(" ", "").toLowerCase();

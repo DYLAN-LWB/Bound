@@ -662,9 +662,9 @@ class Game extends egret.DisplayObjectContainer {
 
 	private addLetter(letter:string) {
 		let word = this._wordTF.text.replace("单词：","");
-		if(word.length == 11) {
-			this._wordTF.text = "单词：";
-		}
+		// if(word.length == 11) {
+		// 	this._wordTF.text = "单词：";
+		// }
 		this._wordTF.text += letter;
 
 		for(let i = 0; i < this._allWords.length; i++) {

@@ -17,6 +17,7 @@ var Game = (function (_super) {
         _this._stepBeginX = 200; //初始x值 (台阶中心点为准)
         _this._lifeCount = 10; //x条命
         _this._score = 0; //走的总米数
+        _this._gameEnd = false;
         _this._stepsArray = []; //阶梯数组
         _this._letterArray = []; //字母数组只在每次新增台阶之后删除对象数量的字母
         _this._letterTFArray = []; //字母textfield
@@ -27,8 +28,6 @@ var Game = (function (_super) {
         _this._personTopY = 350; //对象的Y值,控制弹跳对象和台阶
         _this._personWH = 110; //对象宽高
         _this._guideLine = new egret.Shape(); //线条引导
-        _this._guideArrow = new Bitmap("step_png"); //箭头引导
-        _this._historyArrow = new Bitmap("step_png"); //上次箭头引导轨迹
         _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
         _this._guideMaxLength = 200; //箭头的最大长度
         _this._isHit = false; //如果未碰撞到,恢复对象位置
@@ -163,13 +162,6 @@ var Game = (function (_super) {
         //设置弹跳对象初始坐标
         this._personBeginPoint.x = this._person.x + this._personWH / 2;
         this._personBeginPoint.y = this._person.y + this._personWH;
-        //指示箭头提示
-        this._guideArrow = new Bitmap("step_png");
-        this._guideArrow.y = this._personBeginPoint.y;
-        this._guideArrow.x = this._personBeginPoint.x;
-        this._guideArrow.width = 0;
-        this._guideArrow.height = 0;
-        // this.addChild(this._guideArrow);
     };
     //设置提示文字,分数,倒计时
     Game.prototype.setupReminder = function () {
@@ -205,7 +197,7 @@ var Game = (function (_super) {
         this.addChild(this._scoreTF);
         this._lifeTF = new egret.TextField();
         this._lifeTF.x = this.stage.stageWidth * 0.05;
-        this._lifeTF.y = 30;
+        this._lifeTF.y = 20;
         this._lifeTF.width = this.stage.stageWidth * 0.2;
         this._lifeTF.height = 50;
         this._lifeTF.textColor = 0xff6600;
@@ -253,6 +245,7 @@ var Game = (function (_super) {
     // }
     //游戏结束
     Game.prototype.gameTimerCompleteFunc = function () {
+        this._gameEnd = true;
         this.removeTouchEvent();
         //请求游戏结束接口
         this.gameOver();
@@ -263,9 +256,11 @@ var Game = (function (_super) {
     };
     //添加触摸事件
     Game.prototype.addTouchEvent = function () {
-        this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
-        this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
-        this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
+        if (this._gameEnd == false) {
+            this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
+            this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
+            this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
+        }
     };
     //移除触摸事件
     Game.prototype.removeTouchEvent = function () {
@@ -285,10 +280,6 @@ var Game = (function (_super) {
     Game.prototype.touchMove = function (event) {
         //清除上次画的箭头
         this._guideLine.graphics.clear();
-        //初始化箭头
-        this._guideArrow.width = 0;
-        this._guideArrow.height = 0;
-        this._guideArrow.rotation = 0;
         //控制点超出屏幕时容错
         if (event.localY < 0) {
             this._touchMoveToY = 0;
@@ -322,14 +313,6 @@ var Game = (function (_super) {
             this._touchMoveToY = this._personBeginPoint.y;
             this._touchMoveToX = this._personBeginPoint.x + this._guideTruthLength;
         }
-        //计算角度来旋转箭头
-        //cosB = a/c
-        var radian = (this._touchMoveToX - this._personBeginPoint.x) / (this._personBeginPoint.y - this._touchMoveToY);
-        //通过弧度Math.atan(radian) 计算角度 1弧度＝180°/π （≈57.3°）
-        var angle = 90 - Math.atan(radian) * 180 / Math.PI;
-        this._guideArrow.width = this._guideTruthLength;
-        this._guideArrow.height = 10;
-        this._guideArrow.rotation = -angle;
         //设置箭头的贝塞尔曲线控制点
         var controlX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x) / 2;
         var controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y) / 2 - 10;
@@ -345,20 +328,6 @@ var Game = (function (_super) {
     Game.prototype.touchEnd = function (event) {
         //清除箭头
         this._guideLine.graphics.clear();
-        //初始化箭头
-        this._guideArrow.width = 0;
-        this._guideArrow.height = 0;
-        this._guideArrow.rotation = 0;
-        //创建历史轨迹箭头
-        var radian = (this._touchMoveToX - this._personBeginPoint.x) / (this._personBeginPoint.y - this._touchMoveToY);
-        var angle = 90 - Math.atan(radian) * 180 / Math.PI;
-        this._historyArrow.y = this._personBeginPoint.y;
-        this._historyArrow.x = this._personBeginPoint.x;
-        this._historyArrow.width = this._guideTruthLength;
-        this._historyArrow.height = 10;
-        this._historyArrow.rotation = -angle;
-        this._historyArrow.alpha = 0.2;
-        // this.addChild(this._historyArrow);
         //动画时移除交互事件
         this.removeTouchEvent();
         //根据线的长度计算最高点 2倍
@@ -373,7 +342,7 @@ var Game = (function (_super) {
                 this._person.y = this._personTopY;
                 this._lifeCount -= 1;
                 this._lifeTF.text = "您还有" + this._lifeCount + "条命";
-                if (this._lifeCount == 0) {
+                if (this._lifeCount < 1) {
                     this._lifeTF.text = "";
                     this.gameTimerCompleteFunc();
                 }
@@ -383,6 +352,8 @@ var Game = (function (_super) {
                     var channel = sound_1.play(0, 1);
                 }, this);
                 sound_1.load("resource/sound/down.mp3");
+                //请求接口,提交掉下去
+                this.plusScore(0);
             }
             //动画结束后重新添加交互事件 (未发生碰撞)
             this.addTouchEvent();
@@ -427,11 +398,6 @@ var Game = (function (_super) {
         // 	let channel:egret.SoundChannel = sound.play(0,1);
         // }, this);
         // sound.load("resource/sound/down.mp3");
-        //清除历史箭头
-        if (this._historyArrow && this._historyArrow.parent) {
-            this._historyArrow.parent.removeChild(this._historyArrow);
-        }
-        ;
         //发生碰撞,设置Y值, 移除弹跳对象的缓动动画
         this._person.y = this._personTopY;
         egret.Tween.removeTweens(this);
@@ -693,6 +659,7 @@ var Game = (function (_super) {
         this.removeChildren();
         // this._scends = 180;
         this._score = 0;
+        this._lifeCount = 10;
         //重玩时清空数组
         this._stepsArray.splice(0, this._stepsArray.length);
         this._letterArray.splice(0, this._letterArray.length);

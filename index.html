@@ -51,11 +51,16 @@
 
     <script type="text/javascript" src="resource/js/jquery-2.1.1.min.js"></script>
     <script src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
-    <script type="text/javascript" src="https://www.beisu100.com/beisuapp/gamerank/sharejs"></script>
+    <!--<script type="text/javascript" src="https://www.beisu100.com/beisuapp/gamerank/sharejs"></script>-->
+    <link rel="stylesheet" type="text/css" href="resource/css/guangao.css"/>
+    <script src="resource/js/flexible.js"></script>
+    <script src="resource/js/flexible_css.js"></script> 
+    <script src="resource/js/share.js"></script>
+
 
 </head>
 <body>
-    <div id = "attention" onclick="clickAttention();" style="display:none;z-index: 9999;position: absolute;"><img style="width: 100%;height: 100%;" src="resource/game/attention.png"/></div>
+    <div id = "attention" onclick="clickAttention();" style="display:none;z-index: 9999;position: absolute;"><img style="width: 100%;height: 100%;" src="resource/image/attention.png"/></div>
 
     <div style="margin: auto;width: 100%;height: 100%;" class="egret-player"
          data-entry-class="Main"
@@ -69,7 +74,206 @@
          data-show-fps="false" data-show-log="false"
          data-show-fps-style="x:0,y:0,size:12,textColor:0xffffff,bgAlpha:0.9">
     </div>
+  <!--&lt;!&ndash;-->
+    <div id="toastId2" class="toasttj2" style="display: none; opacity: 0;"></div>
+    <div id="guangao" style=" display: none;  position:absolute;z-index: 9999;bottom: 0px;left: 50%;margin-left: -5rem; background-color:white; clear:both;width:10rem;max-width: 10rem ;padding-bottom: 0.1rem" align="center" >
 
+        <div id="imgShow" class="itemlist" onclick="img()" style="position: relative">
+            <div style="background:url('https://www.beisu100.com/img/line.png'); background-repeat: repeat-x; background-position-y: 0.2rem; text-align:center;width: 94%;margin: auto;opacity: 0.5;">
+                <div onclick="link();" style="display:inline-block;clear: both; width: 4rem;margin: 0 auto;background-color: white;overflow: hidden; font-size: 0.32rem;background-color:white; color:#8f8f8f ">倍速小店分享点此进店<br />
+                </div>
+            </div>
+            <img class="itme_left_img_bian" src="https://www.beisu100.com/shop/img/bian.png">
+            <img id="imgUrl" class="itme_left_img" >
+            <div class="item_middle">
+                <div class="item_middle_title" id="name"></div>
+                <div class="item_middle_price">
+                    <div class="item_middle_price_left" id="shopprice"></div>
+                </div>
+                <div class="item_middle_yh" ></div>
+                <div class="item_middle_bottom">
+                    <div class="itme_middle_bottom_juan" style="float: left;" id="discount">劵：</div>
+                </div>
+            </div>
+            <div class="item_right">
+                <div class="item_right_content">
+                    <div class="item_right_text_top" id="buyType"></div>
+                    <div class="item_right_text_bottom">购买</div>
+                </div>
+                <img class="item_right_bian" src="https://www.beisu100.com/shop/img/yy.png"></div>
+
+        </div>
+
+
+        <input readOnly="true" style="outline: none;border: 0px; color: rgba(0,0,0,0.0);position: absolute;left:-200px; background-color: transparent" id="biao1" value=""/>
+        <div id="biaoios" style=";position: absolute;left:-200px; color: rgba(0,0,0,0);background-color: transparent" ></div>
+    </div>
+
+    <script type="text/javascript">
+  
+       function $S(s){return document.getElementById(s);}
+        function $html(s,html){$S(s).innerHTML=html;}
+        var toastTime2=null;
+        var displayTime2=null;
+        function setToast3(html){
+            if(toastTime2!=null){
+                clearTimeout(toastTime2);
+                clearTimeout(displayTime2);
+            }
+            $S('toastId2').style.display='block';
+            $S('toastId2').style.opacity=1;
+            $html('toastId2',html);
+            toastTime2=setTimeout(function(){
+                $S('toastId2').style.opacity=0;
+                displayTime2=setTimeout(function(){$S('toastId2').style.display='none';},1000);
+            },1000);
+        }
+        //链接小店
+        function link(){
+            window.location.href="https://www.beisu100.com/weixinbeisu/shop.html";
+        }
+
+
+        //获取商品
+        var shopArr;
+        var _num=0;
+        $.ajax({
+            type : "get",
+            url : "https://www.beisu100.com/beisuapp/shop/goodshopone",
+            dataType : "json",
+            json: "callback",
+            data:{},
+            jsonpCallback:"success_jsonpCallback",
+            success : function(D){
+                console.log(D)
+                shopArr=D.data;
+                $("#imgShow").show();
+                change();
+                setInterval(change,3000);
+            },
+            error:function(data){
+                console.log(data);
+            }
+        });
+
+        function change(){
+
+            if(shopArr[_num].type==1)//折扣商品
+            {
+                $("#discount").html("劵：");
+                $("#discount").html($("#discount").html()+shopArr[_num].discount+"元");
+                $("#buyType").html("立即领劵");
+                $("#name").html(shopArr[_num].name);
+                $("#imgUrl").attr("src",shopArr[_num].imgurl);
+                document.getElementById("shopprice").style.paddingTop="0px";
+                document.getElementsByClassName("item_middle_yh")[0].style.marginTop="0px";
+                document.getElementsByClassName("item_middle_yh")[0].style.textAlign="left"
+                if(shopArr[_num].shopdisprice){
+                    document.getElementsByClassName("item_middle_yh")[0].innerHTML="券后价："+shopArr[_num].shopdisprice+"元";
+                }
+                $("#shopprice").html("原价："+shopArr[_num].shopprice+"元");
+                $("#biao1").val(shopArr[_num].code);
+                document.getElementById("biaoios").innerHTML=shopArr[_num].code+"";
+            }
+            else if(shopArr[_num].type==2){//非折扣商品
+                $("#discount").html("劵：");
+                $("#discount").html($("#discount").html()+shopArr[_num].discount);
+                document.getElementById("discount").style.visibility="hidden"
+                $("#buyType").html("立即购买");
+                $("#name").html(shopArr[_num].name);
+                $("#imgUrl").attr("src",shopArr[_num].imgurl);
+                $("#shopprice").html("原价："+shopArr[_num].shopprice+"元");
+                document.getElementById("shopprice").style.textDecoration="none"
+                $("#biao1").val(shopArr[_num].code);
+                document.getElementById("biaoios").innerHTML=shopArr[_num].code+"";
+            }
+
+            //获取单个商品信息
+            _num++;
+            if(_num==shopArr.length)
+            {
+                _num=0;
+            }
+        }
+
+
+        function img()
+        {
+            if (navigator.userAgent.match(/(iPhone|iPod|iPad);?/i)) {
+                window.getSelection().removeAllRanges();
+                var Url2=document.getElementById("biaoios");//要复制文字的节点
+                var range = document.createRange();
+                // 选中需要复制的节点
+                range.selectNode(Url2);
+                // 执行选中元素
+                window.getSelection().addRange(range);
+                // 执行 copy 操作
+                var successful = document.execCommand('copy');
+
+                // 移除选中的元素
+                window.getSelection().removeAllRanges();
+            }else{
+                var Url2=document.getElementById("biao1");//要复制文字的节点
+                Url2.select(); // 选择对象
+                document.execCommand("Copy"); // 执行浏览器复制命令
+            }
+            setToast3('<div id="toastbg">淘口令已复制，打开【手机淘宝】即可购买。</div>');
+//            img_show1();
+        }
+
+
+
+        function handler1() {
+            event.preventDefault();
+        }
+
+
+        function img_show1(){
+
+            var _type;
+            var _word;
+            if(_num>0)
+            {
+                _type=shopArr[_num-1].type;
+            }
+            else{
+                _type=shopArr[shopArr.length-1].type;
+            }
+            if(_type==1)
+            {
+                _word="淘口令已复制，打开【手机淘宝】即可领券购买。";
+            }
+            else if(_type==2)
+            {
+                _word="淘口令已复制，打开【手机淘宝】即可购买。";
+            }
+
+
+            document.addEventListener('touchmove', handler1, false);
+            $("body").css("overflow-y","hidden");
+            var s='<div id="zhezhao" style="width:100%;height:100%;position:absolute;top:'+$(document).scrollTop()+'px;z-index:9999;background-image: url(https://www.beisu100.com/shop/bg.png);">';
+            s+='<div style="border-radius:15px;width:70%;height:20%;margin-left:15%;;margin-top:60%;background-color:#ffffff;color:#000000;">';
+            s+='<div style="width:80%;height:40%;padding-top:5%;margin:auto;">'+_word+'</div>';
+            s+='<div style="float:left;padding-top:10%;color:grey;margin-left:55%;" onclick="del1();">取消</div><div style="float:left;padding-top:10%;color:forestgreen;margin-left:10%;" onclick="del1();">确定</div>';
+            s+='</div>';
+            s+='</div>';
+            $("body").append(s);
+
+        }
+
+
+        function del1(){
+            document.removeEventListener('touchmove', handler1, false);
+            $("body").css("overflow-y","auto");
+            var obj = $("#zhezhao");
+            obj.remove();
+            location.reload();
+        }
+    </script>
+
+
+
+    <!--<&ndash;&gt;-->
     <script type="text/javascript">
         function clickAttention() {
             document.getElementById("attention").style.display = "none";

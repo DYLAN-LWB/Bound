@@ -10,8 +10,7 @@ var Info = (function () {
         this._downnum = this._url + "/typos/numdown5"; //减游戏次数
         this._gameover = this._url + "/typos/GameOver"; //游戏结束
         this._typosTempjump = this._url + "/typos/typosTempjump"; //加分
-        this._getWord = this._url + "/typos/getjumpwords"; //加分
-        this._searchWord = "http://ceshi.beisu100.com/querylist/getwordslist/l/";
+        this._getWord = this._url + "/typos/getjumpwords"; //获取单词
     }
     return Info;
 }());

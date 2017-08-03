@@ -25,7 +25,7 @@ class Home extends egret.DisplayObjectContainer {
         //     this.stage.setContentSize(this._isPortraitScreen ? 750 : 1218, this._isPortraitScreen ? 1218 : 750);
         // }
         var ua = window.navigator.userAgent.toLowerCase();
-        if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+        if(ua.match(/MicroMessenger/i) == 'micromessenger'){    //微信
             this.stage.setContentSize(1218,750);
         } else{
             if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) { //判断iPhone|iPad|iPod|iOS
@@ -43,6 +43,8 @@ class Home extends egret.DisplayObjectContainer {
 
 		//获取用户相关信息
         this.getUserInfo();
+        
+        $("#guangao").show();
     }
      public getUserInfo() {
 
@@ -115,7 +117,7 @@ class Home extends egret.DisplayObjectContainer {
 
             //开始游戏按钮
             this._startButton = new Bitmap("gamebody_json.start");
-            this._startButton.x = this._isPortraitScreen ? 180 : 780;
+            this._startButton.x = this._isPortraitScreen ? 180 : 760;
             this._startButton.y = this._isPortraitScreen ? 820 : 570;
             this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._startButton.touchEnabled = true;
@@ -124,7 +126,7 @@ class Home extends egret.DisplayObjectContainer {
 
 			//查看排名按钮
             this._rankButton = new Bitmap("gamebody_json.ranking");
-            this._rankButton.x = this._isPortraitScreen ? 180 : 950;
+            this._rankButton.x = this._isPortraitScreen ? 180 : 900;
             this._rankButton.y = this._isPortraitScreen ? 990 : 570;
             this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._rankButton.touchEnabled = true;
@@ -155,11 +157,13 @@ class Home extends egret.DisplayObjectContainer {
 	//查看排名
     private checkRanking(evt:egret.TouchEvent) {
         console.log("查看排名");
+        
         window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     }
 
 	//开始游戏
     private startPlayGame(evt:egret.TouchEvent) {
+        $("#guangao").hide();
 
         console.log("开始游戏");
         //避免重复点击使游戏次数出错

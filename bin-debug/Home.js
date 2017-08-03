@@ -43,6 +43,7 @@ var Home = (function (_super) {
         this.addChild(homeBackground);
         //获取用户相关信息
         this.getUserInfo();
+        $("#guangao").show();
     };
     Home.prototype.getUserInfo = function () {
         //test app url
@@ -107,7 +108,7 @@ var Home = (function (_super) {
             this.addChild(this._playNumText);
             //开始游戏按钮
             this._startButton = new Bitmap("gamebody_json.start");
-            this._startButton.x = this._isPortraitScreen ? 180 : 780;
+            this._startButton.x = this._isPortraitScreen ? 180 : 760;
             this._startButton.y = this._isPortraitScreen ? 820 : 570;
             this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._startButton.touchEnabled = true;
@@ -115,7 +116,7 @@ var Home = (function (_super) {
             this.addChild(this._startButton);
             //查看排名按钮
             this._rankButton = new Bitmap("gamebody_json.ranking");
-            this._rankButton.x = this._isPortraitScreen ? 180 : 950;
+            this._rankButton.x = this._isPortraitScreen ? 180 : 900;
             this._rankButton.y = this._isPortraitScreen ? 990 : 570;
             this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._rankButton.touchEnabled = true;
@@ -147,6 +148,7 @@ var Home = (function (_super) {
     };
     //开始游戏
     Home.prototype.startPlayGame = function (evt) {
+        $("#guangao").hide();
         console.log("开始游戏");
         //避免重复点击使游戏次数出错
         this._rankButton.touchEnabled = false;

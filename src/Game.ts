@@ -20,6 +20,7 @@ class Game extends egret.DisplayObjectContainer {
 	// private _countdownChannel: egret.SoundChannel;	//倒计时结束的声音
 	private _hitIndex: number;				//碰撞到的台阶,在当前台阶数组的index
 	private _backgroundChannel: egret.SoundChannel;	//游戏背景音乐
+	private _gameEnd:boolean = false;
 
 	private _stepsArray = [];			//阶梯数组
 	private _letterArray = [];			//字母数组只在每次新增台阶之后删除对象数量的字母
@@ -35,9 +36,6 @@ class Game extends egret.DisplayObjectContainer {
 	private _personWH = 110;			//对象宽高
 
 	private _guideLine = new egret.Shape();				//线条引导
-	private _guideArrow = new Bitmap("step_png");		//箭头引导
-	private _historyArrow = new Bitmap("step_png");	//上次箭头引导轨迹
-
 	private _touchBeginPoint = new egret.Point(0,0);	//开始触摸的点
 	private _touchMoveToX: number;						//X坐标将要移动到的位置
 	private _touchMoveToY: number;						//Y坐标将要移动到的位置
@@ -207,15 +205,6 @@ class Game extends egret.DisplayObjectContainer {
 		//设置弹跳对象初始坐标
 		this._personBeginPoint.x = this._person.x + this._personWH/2;
 		this._personBeginPoint.y = this._person.y + this._personWH;
-
-
-		//指示箭头提示
-		this._guideArrow = new Bitmap("step_png");
-		this._guideArrow.y = this._personBeginPoint.y;
-		this._guideArrow.x = this._personBeginPoint.x;
-		this._guideArrow.width = 0;
-		this._guideArrow.height = 0;
-		// this.addChild(this._guideArrow);
 	}
 
 	//设置提示文字,分数,倒计时
@@ -256,7 +245,7 @@ class Game extends egret.DisplayObjectContainer {
 
 		this._lifeTF = new egret.TextField();
 		this._lifeTF.x = this.stage.stageWidth*0.05;
-		this._lifeTF.y = 30;
+		this._lifeTF.y = 20;
 		this._lifeTF.width = this.stage.stageWidth*0.2;
 		this._lifeTF.height = 50;
         this._lifeTF.textColor = 0xff6600;
@@ -311,6 +300,7 @@ class Game extends egret.DisplayObjectContainer {
 
 	//游戏结束
 	private gameTimerCompleteFunc () {
+		this._gameEnd = true;
 
 		this.removeTouchEvent();
 
@@ -324,9 +314,11 @@ class Game extends egret.DisplayObjectContainer {
 
 	//添加触摸事件
 	private addTouchEvent() {
-		this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
-		this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
-		this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
+		if(this._gameEnd == false) {
+			this.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.touchBegin, this);
+			this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.touchEnd, this);
+			this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.touchMove, this);
+		}
 	}
 
 	//移除触摸事件
@@ -352,11 +344,6 @@ class Game extends egret.DisplayObjectContainer {
 	
 		//清除上次画的箭头
 		this._guideLine.graphics.clear();
-
-		//初始化箭头
-		this._guideArrow.width = 0;
-		this._guideArrow.height = 0;
-		this._guideArrow.rotation = 0;
 
 		//控制点超出屏幕时容错
 		if(event.localY < 0) {
@@ -400,16 +387,6 @@ class Game extends egret.DisplayObjectContainer {
 			this._touchMoveToX = this._personBeginPoint.x+this._guideTruthLength;
 		}
 
-		//计算角度来旋转箭头
-		//cosB = a/c
-		let radian =(this._touchMoveToX-this._personBeginPoint.x)/(this._personBeginPoint.y - this._touchMoveToY);
-		//通过弧度Math.atan(radian) 计算角度 1弧度＝180°/π （≈57.3°）
-		let angle = 90 - Math.atan(radian) * 180 / Math.PI;
-
-		this._guideArrow.width = this._guideTruthLength;
-		this._guideArrow.height = 10;
-		this._guideArrow.rotation = -angle;
-
 		//设置箭头的贝塞尔曲线控制点
 		let controlX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)/2;
 		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2 - 10;
@@ -429,22 +406,6 @@ class Game extends egret.DisplayObjectContainer {
 		//清除箭头
 		this._guideLine.graphics.clear();
 
-		//初始化箭头
-		this._guideArrow.width = 0;
-		this._guideArrow.height = 0;
-		this._guideArrow.rotation = 0;
-
-		//创建历史轨迹箭头
-		let radian =(this._touchMoveToX-this._personBeginPoint.x)/(this._personBeginPoint.y - this._touchMoveToY);
-		let angle = 90 - Math.atan(radian) * 180 / Math.PI;
-		this._historyArrow.y = this._personBeginPoint.y;
-		this._historyArrow.x = this._personBeginPoint.x;
-		this._historyArrow.width = this._guideTruthLength;
-		this._historyArrow.height = 10;
-		this._historyArrow.rotation = -angle;
-		this._historyArrow.alpha = 0.2;
-		// this.addChild(this._historyArrow);
-
 		//动画时移除交互事件
 		this.removeTouchEvent();
 
@@ -463,7 +424,7 @@ class Game extends egret.DisplayObjectContainer {
 
 				this._lifeCount -= 1;
         		this._lifeTF.text = "您还有"+this._lifeCount+"条命";
-				if(this._lifeCount == 0) {
+				if(this._lifeCount < 1) {
 					this._lifeTF.text = "";
 					this.gameTimerCompleteFunc();
 				}
@@ -475,6 +436,8 @@ class Game extends egret.DisplayObjectContainer {
 				}, this);
 				sound.load("resource/sound/down.mp3");
 
+				//请求接口,提交掉下去
+				this.plusScore(0);
 			}
 			//动画结束后重新添加交互事件 (未发生碰撞)
 			this.addTouchEvent();
@@ -524,11 +487,6 @@ class Game extends egret.DisplayObjectContainer {
 		// 	let channel:egret.SoundChannel = sound.play(0,1);
 		// }, this);
 		// sound.load("resource/sound/down.mp3");
-
-		//清除历史箭头
-		if(this._historyArrow && this._historyArrow.parent) {
-			this._historyArrow.parent.removeChild(this._historyArrow)
-		};
 
 		//发生碰撞,设置Y值, 移除弹跳对象的缓动动画
 		this._person.y = this._personTopY;
@@ -848,7 +806,8 @@ class Game extends egret.DisplayObjectContainer {
         this.removeChildren();
         // this._scends = 180;
         this._score = 0;
-
+		this._lifeCount = 10;
+		
 		//重玩时清空数组
 		this._stepsArray.splice(0, this._stepsArray.length);
 		this._letterArray.splice(0, this._letterArray.length);

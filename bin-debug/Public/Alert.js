@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || function (d, b) {
  */
 var Alert = (function (_super) {
     __extends(Alert, _super);
-    function Alert(type, score, highScore, ranking, descstate, screenwith) {
+    function Alert(type, score, highScore, ranking, descstate, screenwith, screenHeight) {
         var _this = _super.call(this) || this;
         _this.type = type;
         _this.score = score;
@@ -19,12 +19,20 @@ var Alert = (function (_super) {
         _this.ranking = ranking;
         _this.descstate = descstate;
         _this.screenwith = screenwith;
+        _this.screenHeight = screenHeight;
         _this.initView();
         return _this;
     }
     Alert.prototype.initView = function () {
-        var bg = new Bitmap("alert_bg");
-        bg.height = this.screenwith;
+        var bg = new Bitmap("black_png");
+        bg.height = this.screenHeight;
+        bg.width = this.screenwith;
+        if (this.type == 2) {
+            bg.x = -250;
+            bg.y = 100;
+            bg.height = this.screenwith;
+            bg.width = this.screenHeight;
+        }
         this.addChild(bg);
         switch (this.type) {
             case 1:
@@ -71,23 +79,23 @@ var Alert = (function (_super) {
                 gameover.y = 480;
                 gameover.anchorOffsetX = gameover.width / 2;
                 gameover.anchorOffsetY = gameover.height / 2;
-                if (this.descstate == 1) {
-                    var text = new egret.TextField();
-                    text.x = 140;
-                    text.y = 380;
-                    text.size = 32;
-                    text.fontFamily = "Microsoft YaHei";
-                    text.verticalAlign = egret.VerticalAlign.BOTTOM;
-                    text.textFlow = [
-                        {
-                            text: "防作弊系统检测:",
-                            style: { "textColor": 0x7a2c47, "size": 22 }
-                        },
-                        { text: "成绩无效,如有问题,请联系客服", style: { "textColor": 0xff1e00, "size": 22 } }
-                    ];
-                    text.anchorOffsetY = text.height / 2;
-                    this.addChild(text);
-                }
+                // if(this.descstate==1){
+                var text = new egret.TextField();
+                text.x = 140;
+                text.y = 380;
+                text.size = 32;
+                text.fontFamily = "Microsoft YaHei";
+                text.verticalAlign = egret.VerticalAlign.BOTTOM;
+                text.textFlow = [
+                    {
+                        text: "防作弊系统检测:",
+                        style: { "textColor": 0x7a2c47, "size": 22 }
+                    },
+                    { text: "成绩无效,如有问题,请联系客服", style: { "textColor": 0xff1e00, "size": 22 } }
+                ];
+                text.anchorOffsetY = text.height / 2;
+                this.addChild(text);
+                // }
                 var score = new egret.TextField();
                 score.x = 420;
                 score.y = 420;

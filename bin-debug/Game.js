@@ -29,7 +29,7 @@ var Game = (function (_super) {
         _this._personWH = 110; //对象宽高
         _this._guideLine = new egret.Shape(); //线条引导
         _this._touchBeginPoint = new egret.Point(0, 0); //开始触摸的点
-        _this._guideMaxLength = 200; //箭头的最大长度
+        _this._guideMaxLength = 300; //箭头的最大长度
         _this._isHit = false; //如果未碰撞到,恢复对象位置
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.createGameScene, _this);
         return _this;
@@ -43,16 +43,23 @@ var Game = (function (_super) {
         this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g, "");
         this._info._timenum = localStorage.getItem("timenum").replace(/"/g, "");
         this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g, "");
+        var testAlert = new Alert(Alert.GamePageScore, this._score.toString(), "333", "1", 2, this.stage.stageHeight, this.stage.stageWidth);
+        testAlert.x = 250;
+        testAlert.y = -100;
+        testAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
+        testAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
+        this.addChild(testAlert);
         //减游戏次数
         this.minusGameCount();
     };
-    //接口-请求单词, 只在初次添加UI
+    //接口-请求单词, 只在初次请求时添加UI
     Game.prototype.getWords = function (type) {
         // this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o"];
         var params = "?vuid=" + this._info._vuid +
             "&key=" + this._info._key +
             "&rands=" + this._rands +
             "&isfrom=" + this._info._isfrom;
+        alert("请求单词接口 - " + this._info._getWord + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._getWord + params, egret.HttpMethod.GET);
@@ -79,10 +86,13 @@ var Game = (function (_super) {
                 var wordArray = [];
                 for (var i = 0; i < result["data"].length; i++) {
                     wordArray.push(result["data"][i]["word"]);
+                    if (i == 0) {
+                        alert("单词请求成功" + result["data"][0]["word"]);
+                    }
                 }
                 Array.prototype.push.apply(this._allWords, wordArray); //将请求到的单词添加到大数组
                 var wordsString = wordArray.join().replace(/,/g, "").replace(/ /g, "").toLowerCase(); //将单词数组转为字符串,并且去掉所有逗号,转成小写
-                console.log("this._allWords=" + this._allWords);
+                // alert("this._allWords = "+this._allWords);
                 var newLetters = wordsString.split(""); //将字母字符串转为数组
                 Array.prototype.push.apply(this._letterArray, newLetters); //追加到字母数组
                 //接口请求成功添加UI
@@ -201,7 +211,7 @@ var Game = (function (_super) {
         this._lifeTF.width = this.stage.stageWidth * 0.2;
         this._lifeTF.height = 50;
         this._lifeTF.textColor = 0xff6600;
-        this._lifeTF.textAlign = egret.HorizontalAlign.CENTER;
+        this._lifeTF.textAlign = egret.HorizontalAlign.LEFT;
         this._lifeTF.size = 25;
         this._lifeTF.text = "您还有" + this._lifeCount + "条命";
         this._lifeTF.fontFamily = "Microsoft YaHei";
@@ -281,9 +291,9 @@ var Game = (function (_super) {
         //清除上次画的箭头
         this._guideLine.graphics.clear();
         //控制点超出屏幕时容错
-        if (event.localY < 0) {
-            this._touchMoveToY = 0;
-        }
+        // if(event.localY < 0) {
+        // 	this._touchMoveToY = 0;
+        // }
         //计算触摸点移动到的坐标
         this._touchMoveToX = this._personBeginPoint.x + (event.localX - this._touchBeginPoint.x);
         this._touchMoveToY = this._personBeginPoint.y + (event.localY - this._touchBeginPoint.y);
@@ -315,7 +325,7 @@ var Game = (function (_super) {
         }
         //设置箭头的贝塞尔曲线控制点
         var controlX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x) / 2;
-        var controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y) / 2 - 10;
+        var controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y) / 2 - 15;
         //画箭头
         this._guideLine.graphics.lineStyle(3, 0x000000);
         this._guideLine.graphics.moveTo(this._personBeginPoint.x, this._personBeginPoint.y); //起点
@@ -331,8 +341,8 @@ var Game = (function (_super) {
         //动画时移除交互事件
         this.removeTouchEvent();
         //根据线的长度计算最高点 2倍
-        this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x) * 5;
-        this._pathHighY = this._personBeginPoint.y - this._personWH - (this._personBeginPoint.y - this._touchMoveToY) * 4;
+        this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x) * 2;
+        this._pathHighY = this._personBeginPoint.y - this._personWH - (this._personBeginPoint.y - this._touchMoveToY) * 2;
         //缓动动画
         egret.Tween.get(this).to({ factor: 1 }, 1000).call(function () {
             //动画结束之后如果未发生碰撞, 恢复对象位置 - 复活重玩
@@ -384,7 +394,9 @@ var Game = (function (_super) {
     Game.prototype.checkHit = function () {
         for (var index = 0; index < this._stepsArray.length; index++) {
             var _step = this._stepsArray[index];
-            var _isHit = _step.hitTestPoint(this._person.x + this._person.width / 2, this._person.y + this._person.height, true);
+            var _isHit = _step.hitTestPoint(this._person.x + this._person.width / 2, this._person.y + this._person.height);
+            // let _isHit1: boolean = _step.hitTestPoint(this._person.x + 20, this._person.y+this._person.height, true);
+            // let _isHit2: boolean = _step.hitTestPoint(this._person.x+this._person.width, this._person.y+this._person.height, true);
             if (_isHit) {
                 this.hitAction(index);
             }
@@ -551,9 +563,8 @@ var Game = (function (_super) {
             //加速时 时间稍微往后 加米数
             var timer = new egret.Timer(500, 1);
             timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
-                //加速动画
+                //加速动画 300 * 5
                 this.addChild(new GameSpeedMotion(this.stage.stageWidth));
-                this.addTouchEvent();
                 var add = new egret.Timer(300, 1);
                 add.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
                     //增加本地分数
@@ -562,6 +573,11 @@ var Game = (function (_super) {
                     this._wordTF.text = "单词：";
                 }, this);
                 add.start();
+                var touch = new egret.Timer(1500, 1);
+                touch.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
+                    this.addTouchEvent();
+                }, this);
+                touch.start();
                 if (right && right.parent) {
                     right.parent.removeChild(right);
                 }
@@ -594,6 +610,7 @@ var Game = (function (_super) {
             "&timenum=" + this._info._timenum +
             "&activitynum=" + this._info._activitynum +
             "&isfrom=" + this._info._isfrom;
+        alert("减游戏次数接口 - " + this._info._getWord + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._downnum + params, egret.HttpMethod.GET);
@@ -604,8 +621,8 @@ var Game = (function (_super) {
             var result = JSON.parse(request.response);
             if (result["code"] == 0) {
                 this._linnum = parseInt(result["data"]["linnum"]);
-                this._rands = parseInt(result["data"]["rands"]);
-                this._tid = parseInt(result["data"]["tid"]);
+                this._rands = result["data"]["rands"].toString();
+                this._tid = result["data"]["tid"].toString();
                 //请求单词
                 this.getWords(1);
             }
@@ -623,6 +640,7 @@ var Game = (function (_super) {
             "&timenum=" + this._info._timenum +
             "&activitynum=" + this._info._activitynum +
             "&isfrom=" + this._info._isfrom;
+        alert("游戏结束接口 - " + this._info._gameover + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         //将参数拼接到url
@@ -635,7 +653,7 @@ var Game = (function (_super) {
             if (this._score > parseInt(highScore)) {
                 highScore = this._score;
             }
-            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore, result["data"]["order"], result["data"]["text"], this.stage.stageHeight);
+            this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore, result["data"]["order"], result["data"]["text"], this.stage.stageHeight, this.stage.stageWidth);
             this._normalAlert.x = 250;
             this._normalAlert.y = -100;
             this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
@@ -651,7 +669,8 @@ var Game = (function (_super) {
         if (this._normalAlert && this._normalAlert.parent) {
             this._normalAlert.parent.removeChild(this._normalAlert);
         }
-        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
+        // alert("查看排名 - "+this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom);
+        window.location.href = this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     };
     //游戏结束alert-重玩
     Game.prototype.restartGame = function () {
@@ -660,6 +679,7 @@ var Game = (function (_super) {
         // this._scends = 180;
         this._score = 0;
         this._lifeCount = 10;
+        this._gameEnd = false;
         //重玩时清空数组
         this._stepsArray.splice(0, this._stepsArray.length);
         this._letterArray.splice(0, this._letterArray.length);

@@ -1,6 +1,6 @@
 class Info  {
-    // public  _url: string = "http://www.beisu100.com/beisuapp";	// 线上环境
-    public _url = "http://ceshi.beisu100.com/beisuapp";	//测试环境
+    public  _url: string = "http://www.beisu100.com/beisuapp";	// 线上环境
+    // public _url = "http://www.beisu100.com/beisuapp";	//测试环境
     
     public _hasAttention = this._url + "/uservote/isguanzhu";	//是否关注
 
@@ -8,10 +8,12 @@ class Info  {
 
     public _downnum = this._url + "/typos/numdown5";     //减游戏次数
     public _gameover = this._url + "/typos/GameOver";    //游戏结束
-    public _typosTempjump = this._url + "/typos/typosTempjump";  //加分
+    public _typosTempjump = this._url + "/typos/typostempjump";  //加分
 
     public _getWord = this._url + "/typos/getjumpwords";  //获取单词
     // public _searchWord = "http://ceshi.beisu100.com/querylist/getwordslist/l/";
+
+    public _rankUrl = "http://www.beisu100.com/beisuapp/gamerank/rank/timenum/";
 
     public _vuid:string;    //用户id
     public _key:string;     //用户key

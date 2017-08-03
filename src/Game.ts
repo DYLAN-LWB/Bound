@@ -9,7 +9,7 @@ class Game extends egret.DisplayObjectContainer {
 	//public
 	private _totalStepCount = 5;			//台阶数量
 	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
-	private _lifeCount = 10;					//x条命
+	private _lifeCount = 5;					//x条命
 	private _lifeTF: egret.TextField;		//米数文字
 	private _score = 0;						//走的总米数
 	private _scoreTF: egret.TextField;		//米数文字
@@ -39,7 +39,7 @@ class Game extends egret.DisplayObjectContainer {
 	private _touchBeginPoint = new egret.Point(0,0);	//开始触摸的点
 	private _touchMoveToX: number;						//X坐标将要移动到的位置
 	private _touchMoveToY: number;						//Y坐标将要移动到的位置
-	private _guideMaxLength = 200;						//箭头的最大长度
+	private _guideMaxLength = 300;						//箭头的最大长度
 	private _guideTruthLength: number;					//箭头实际长度
 
 	private _pathHighX: number;		//运动到最高点的x坐标
@@ -68,7 +68,7 @@ class Game extends egret.DisplayObjectContainer {
 		this.minusGameCount();
     }
 
-	//接口-请求单词, 只在初次添加UI
+	//接口-请求单词, 只在初次请求时添加UI
 	private getWords(type: number) {
 		// this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o"];
 
@@ -76,6 +76,7 @@ class Game extends egret.DisplayObjectContainer {
 					 "&key=" + this._info._key +
 					 "&rands=" + this._rands + 
 					 "&isfrom=" + this._info._isfrom;
+		// alert("请求单词接口 - "+this._info._getWord + params);
 		let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._getWord + params, egret.HttpMethod.GET);
@@ -109,7 +110,7 @@ class Game extends egret.DisplayObjectContainer {
 
 				Array.prototype.push.apply(this._allWords, wordArray); //将请求到的单词添加到大数组
 				let wordsString = wordArray.join().replace(/,/g,"").replace(/ /g,"").toLowerCase(); //将单词数组转为字符串,并且去掉所有逗号,转成小写
-				console.log("this._allWords="+this._allWords);
+				// alert("this._allWords = "+this._allWords);
 
 				let newLetters = wordsString.split("");	//将字母字符串转为数组
 				Array.prototype.push.apply(this._letterArray, newLetters); //追加到字母数组
@@ -128,6 +129,9 @@ class Game extends egret.DisplayObjectContainer {
 				alert("请求出错-"+result["msg"]);
 			}
 		}, this);
+		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
+            alert("post error : " + event);
+        }, this);
 	}
 
 	//设置台阶
@@ -249,7 +253,7 @@ class Game extends egret.DisplayObjectContainer {
 		this._lifeTF.width = this.stage.stageWidth*0.2;
 		this._lifeTF.height = 50;
         this._lifeTF.textColor = 0xff6600;
-		this._lifeTF.textAlign = egret.HorizontalAlign.CENTER;
+		this._lifeTF.textAlign = egret.HorizontalAlign.LEFT;
         this._lifeTF.size = 25;
         this._lifeTF.text = "您还有"+this._lifeCount+"条命";
 		this._lifeTF.fontFamily = "Microsoft YaHei"
@@ -346,9 +350,9 @@ class Game extends egret.DisplayObjectContainer {
 		this._guideLine.graphics.clear();
 
 		//控制点超出屏幕时容错
-		if(event.localY < 0) {
-			this._touchMoveToY = 0;
-		}
+		// if(event.localY < 0) {
+		// 	this._touchMoveToY = 0;
+		// }
 
 		//计算触摸点移动到的坐标
 		this._touchMoveToX = this._personBeginPoint.x + (event.localX - this._touchBeginPoint.x);
@@ -389,7 +393,7 @@ class Game extends egret.DisplayObjectContainer {
 
 		//设置箭头的贝塞尔曲线控制点
 		let controlX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)/2;
-		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2 - 10;
+		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2-15;
 
 		//画箭头
  		this._guideLine.graphics.lineStyle(3,0x000000);
@@ -410,8 +414,8 @@ class Game extends egret.DisplayObjectContainer {
 		this.removeTouchEvent();
 
 		//根据线的长度计算最高点 2倍
-		this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)*5;
-		this._pathHighY = this._personBeginPoint.y - this._personWH - (this._personBeginPoint.y - this._touchMoveToY)*4;
+		this._pathHighX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x)*2;
+		this._pathHighY = this._personBeginPoint.y - this._personWH - (this._personBeginPoint.y - this._touchMoveToY)*2;
 
 		//缓动动画
 		egret.Tween.get(this).to({factor: 1}, 1000).call(function() {
@@ -470,7 +474,9 @@ class Game extends egret.DisplayObjectContainer {
 		for(let index = 0; index < this._stepsArray.length; index++) {
 
 			let _step = this._stepsArray[index];
-			let _isHit: boolean = _step.hitTestPoint(this._person.x+this._person.width/2, this._person.y+this._person.height, true);
+			let _isHit: boolean = _step.hitTestPoint(this._person.x+this._person.width/2, this._person.y+this._person.height);
+			// let _isHit1: boolean = _step.hitTestPoint(this._person.x + 20, this._person.y+this._person.height, true);
+			// let _isHit2: boolean = _step.hitTestPoint(this._person.x+this._person.width, this._person.y+this._person.height, true);
 
 			if(_isHit) {
 				this.hitAction(index);
@@ -681,10 +687,9 @@ class Game extends egret.DisplayObjectContainer {
 			let timer: egret.Timer = new egret.Timer(500, 1);
 			timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
 						
-				//加速动画
+				//加速动画 300 * 5
 				this.addChild(new GameSpeedMotion(this.stage.stageWidth));
 
-				this.addTouchEvent();
 
 				let add: egret.Timer = new egret.Timer(300, 1);
 				add.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
@@ -694,6 +699,12 @@ class Game extends egret.DisplayObjectContainer {
 					this._wordTF.text = "单词：";
 				},this);
 				add.start();
+
+				let touch: egret.Timer = new egret.Timer(1500, 1);
+				touch.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
+					this.addTouchEvent();
+				},this);
+				touch.start();
 
 
 				if(right && right.parent) {
@@ -714,14 +725,22 @@ class Game extends egret.DisplayObjectContainer {
 					 "&timenum=" + this._info._timenum + 
 					 "&activitynum=" + this._info._activitynum + 
 					 "&isfrom=" + this._info._isfrom;
+
+		// alert("加分接口 - "+this._info._typosTempjump + params);
+
 		let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._typosTempjump, egret.HttpMethod.POST);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         request.send(params);
 		request.addEventListener(egret.Event.COMPLETE, function() {
-			console.log(JSON.parse(request.response));
+			let result = JSON.parse(request.response);
+			// alert(result["code"]);
+			console.log(result);
 		}, this);
+		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
+            alert("post error : " + event);
+        }, this);
 	}
 
 	//接口-减游戏次数
@@ -731,6 +750,8 @@ class Game extends egret.DisplayObjectContainer {
 					 "&timenum=" + this._info._timenum +
 					 "&activitynum=" + this._info._activitynum + 
 					 "&isfrom=" + this._info._isfrom;
+		// alert("减游戏次数接口 - "+this._info._getWord + params);
+
         let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._downnum + params, egret.HttpMethod.GET);
@@ -741,8 +762,8 @@ class Game extends egret.DisplayObjectContainer {
 			let result = JSON.parse(request.response);
             if (result["code"] == 0) {
 				this._linnum = parseInt(result["data"]["linnum"]);
-				this._rands = parseInt(result["data"]["rands"]);
-				this._tid = parseInt(result["data"]["tid"]);
+				this._rands = result["data"]["rands"].toString();
+				this._tid = result["data"]["tid"].toString();
 
 				//请求单词
 				this.getWords(1);
@@ -750,6 +771,9 @@ class Game extends egret.DisplayObjectContainer {
 				alert("请求出错-"+result["msg"]);
 			}
 		}, this);
+		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
+            alert("post error : " + event);
+        }, this);
 	}
 
 	//接口-游戏结束
@@ -761,6 +785,8 @@ class Game extends egret.DisplayObjectContainer {
 					 "&timenum=" + this._info._timenum + 
 					 "&activitynum=" + this._info._activitynum + 
 					 "&isfrom=" + this._info._isfrom;
+		// alert("游戏结束接口 - "+this._info._gameover + params);
+
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         //将参数拼接到url
@@ -775,7 +801,7 @@ class Game extends egret.DisplayObjectContainer {
 			if(this._score > parseInt(highScore)){
 				highScore = this._score;
 			}
-			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore,result["data"]["order"], result["data"]["text"],this.stage.stageHeight);
+			this._normalAlert = new Alert(Alert.GamePageScore, this._score.toString(), highScore,result["data"]["order"], result["data"]["text"],this.stage.stageHeight,this.stage.stageWidth);
 			this._normalAlert.x = 250;
 			this._normalAlert.y = -100;
 			this._normalAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
@@ -783,9 +809,9 @@ class Game extends egret.DisplayObjectContainer {
 			this.addChild(this._normalAlert);
 
 		}, this);
-        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
-			
-		}, this);
+		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
+            alert("post error : " + event);
+        }, this);
     }
 
 	//游戏结束alert-查看排名
@@ -796,7 +822,8 @@ class Game extends egret.DisplayObjectContainer {
 			this._normalAlert.parent.removeChild(this._normalAlert);
 		} 
 
-        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
+		// alert("查看排名 - "+this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom);
+        window.location.href = this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     }
 
 	//游戏结束alert-重玩
@@ -806,7 +833,8 @@ class Game extends egret.DisplayObjectContainer {
         this.removeChildren();
         // this._scends = 180;
         this._score = 0;
-		this._lifeCount = 10;
+		this._lifeCount = 5;
+		this._gameEnd = false;
 		
 		//重玩时清空数组
 		this._stepsArray.splice(0, this._stepsArray.length);

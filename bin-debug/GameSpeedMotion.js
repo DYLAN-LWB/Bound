@@ -19,6 +19,7 @@ var GameSpeedMotion = (function (_super) {
         _this._person.x = 145;
         _this._person.y = 350;
         _this.addChildAt(_this._person, 99);
+        //person动画
         egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1300).call(function () {
             egret.Tween.get(this._person).to({ x: 145, y: 350 }, 200);
         }, _this);

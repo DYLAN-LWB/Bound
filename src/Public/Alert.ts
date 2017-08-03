@@ -11,8 +11,9 @@ class Alert extends egret.Sprite {
     private ranking;
     private descstate;
     private screenwith;
-    
-    public constructor(type:number, score:string, highScore:string, ranking:string,descstate:number,screenwith:number) {
+    private screenHeight;
+
+    public constructor(type:number, score:string, highScore:string, ranking:string, descstate:number,screenwith:number,screenHeight:number) {
         super();
         this.type = type;
         this.score = score;
@@ -20,13 +21,31 @@ class Alert extends egret.Sprite {
         this.ranking = ranking;
         this.descstate = descstate;
         this.screenwith = screenwith;
+        this.screenHeight = screenHeight;
+
+        // if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) { //判断iPhone|iPad|iPod|iOS
+        //     this.screenwith = screenwith;
+        //     this.screenHeight = screenHeight;
+        // } else if (/(Android)/i.test(navigator.userAgent)) {  //判断Android
+        //     this.screenwith = 800;
+        //     this.screenHeight = 1196;
+        // }
+        
         this.initView();
     }
 
     public initView() {
-        var bg = new Bitmap("alert_bg");
-        bg.height = this.screenwith;
+        var bg = new Bitmap("black_png");
+        bg.height = this.screenHeight;
+        bg.width = this.screenwith;
+        if(this.type == 2){
+            bg.x = -250;
+		    bg.y = 100;
+            bg.height = this.screenwith;
+            bg.width = this.screenHeight;
+        }
         this.addChild(bg);
+        
 
 
         switch (this.type) {

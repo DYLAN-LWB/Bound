@@ -19,11 +19,6 @@ class Home extends egret.DisplayObjectContainer {
     private createGameScene() {
 
 		//屏幕适配
-        // if (/(Android)/i.test(navigator.userAgent)) {
-        //     this.stage.setContentSize(this._isPortraitScreen ? 750 : 1196, this._isPortraitScreen ? 1196 : 750);
-        // } else {
-        //     this.stage.setContentSize(this._isPortraitScreen ? 750 : 1218, this._isPortraitScreen ? 1218 : 750);
-        // }
         var ua = window.navigator.userAgent.toLowerCase();
         if(ua.match(/MicroMessenger/i) == 'micromessenger'){    //微信
             this.stage.setContentSize(1218,750);
@@ -50,8 +45,9 @@ class Home extends egret.DisplayObjectContainer {
 
         //test app url
 		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
-        this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=0&activitynum=9&timenum=1";
-        // alert("this._pageUrl = "+this._pageUrl);
+        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=0&activitynum=9&timenum=1";
+
+        // alert("this._pageUrl = " + this._pageUrl);
         //解析url参数
         var params = this.getUrlParams();
         this._info._vuid = params["uid"];
@@ -84,7 +80,7 @@ class Home extends egret.DisplayObjectContainer {
 		//微信=0 app=1
         if (parseInt(this._info._isfrom) == 0) {
             var introduce = new egret.TextField();
-            introduce.x = this._isPortraitScreen ? 375 : 550;
+            introduce.x = this._isPortraitScreen ? 370 : 550;
             introduce.y = this._isPortraitScreen ? 600 : 375;
             introduce.textFlow = <Array<egret.ITextElement>>[
                 {
@@ -106,8 +102,8 @@ class Home extends egret.DisplayObjectContainer {
 			//剩余挑战机会
             this._playNumText = new egret.TextField();
             this._playNumText.size = 30;
-            this._playNumText.x = this._isPortraitScreen ? 230 : 700;
-            this._playNumText.y = this._isPortraitScreen ? 755 : 500;
+            this._playNumText.x = this._isPortraitScreen ? 220 : 690;
+            this._playNumText.y = this._isPortraitScreen ? 780 : 520;
             this._playNumText.rotation = this._isPortraitScreen ? 0 : -90;
             this._playNumText.textColor = 0x275b51;
             this._playNumText.anchorOffsetX = this._playNumText.width / 2;
@@ -117,7 +113,7 @@ class Home extends egret.DisplayObjectContainer {
 
             //开始游戏按钮
             this._startButton = new Bitmap("gamebody_json.start");
-            this._startButton.x = this._isPortraitScreen ? 180 : 760;
+            this._startButton.x = this._isPortraitScreen ? 180 : 750;
             this._startButton.y = this._isPortraitScreen ? 820 : 570;
             this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._startButton.touchEnabled = true;
@@ -126,7 +122,7 @@ class Home extends egret.DisplayObjectContainer {
 
 			//查看排名按钮
             this._rankButton = new Bitmap("gamebody_json.ranking");
-            this._rankButton.x = this._isPortraitScreen ? 180 : 900;
+            this._rankButton.x = this._isPortraitScreen ? 180 : 880;
             this._rankButton.y = this._isPortraitScreen ? 990 : 570;
             this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
             this._rankButton.touchEnabled = true;
@@ -157,13 +153,12 @@ class Home extends egret.DisplayObjectContainer {
 	//查看排名
     private checkRanking(evt:egret.TouchEvent) {
         console.log("查看排名");
-        
-        window.location.href = "https://www.beisu100.com/beisuapp/gamerank/rank/timenum/" + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
+        // alert(this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom);
+        window.location.href = this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
     }
 
 	//开始游戏
     private startPlayGame(evt:egret.TouchEvent) {
-        $("#guangao").hide();
 
         console.log("开始游戏");
         //避免重复点击使游戏次数出错
@@ -174,6 +169,7 @@ class Home extends egret.DisplayObjectContainer {
         if (parseInt(this._info._isfrom) == 0) {
             this.checkIsAttention();
         } else { //app直接进入游戏页面
+            $("#guangao").hide();
             this.removeChildren();
             this.addChild(new Game());
         }
@@ -181,11 +177,15 @@ class Home extends egret.DisplayObjectContainer {
 
     //获取用户剩余次数
     private getUserCanPalyNumber() {
+
         var params = "?vuid=" + this._info._vuid + 
                      "&key=" + this._info._key + 
                      "&timenum=" + this._info._timenum +
                      "&activitynum=" + this._info._activitynum + 
                      "&isfrom=" + this._info._isfrom;
+
+        // alert("剩余接口 - "+this._info._canPalyNumber + params);
+
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._canPalyNumber + params, egret.HttpMethod.GET);
@@ -228,11 +228,12 @@ class Home extends egret.DisplayObjectContainer {
             let result = JSON.parse(request.response);
             if (result["code"] == 0) { //已关注
                 if (this._playCount > 0) { //已关注并且有游戏次数 进入游戏页面
+                    $("#guangao").hide();
                     this.removeChildren();
                     this.addChild(new Game());
                 } else { //弹窗获取次数, 没有跳转次数点击开始游戏时提示分享
-                    this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight);
-                    this._alert.x = this._isPortraitScreen ? 0 : 110;
+                    this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight,this.stage.stageWidth);
+                    this._alert.x = this._isPortraitScreen ? 0 : 0;
                     this._alert.y = this._isPortraitScreen ? 0 : 750;
                     this._alert.rotation = this._isPortraitScreen ? 0 : -90;
                     this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);

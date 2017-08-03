@@ -4,7 +4,7 @@ var WxShareData = {
     link: "", //"" + sharelink,
     imgUrl: ""
 };
-var _baseUrl = "http://www.beisu100.com";
+var _baseUrl = "//www.beisu100.com";
 var sharelink = window.location.href;
 function share(shareconfig) {
     if (shareconfig.title !== undefined) {
@@ -97,7 +97,7 @@ function sharegame() {
 }
 //接口请求获取参数
 function geturldata(){
-    var data=GetRequest();
+    var data = GetRequest();
     getShareData(data.timenum,data.activitynum,data.uid);
 };
 geturldata();
@@ -131,7 +131,8 @@ function getShareData(timenum,activitynum,vuid) {
             share(D.data);
         },
         error: function (data) {
-            alert("wrong", data);
+            alert("wrong- paaaaa$"+timenum+"%"+activitynum+"$"+vuid+"$"+_baseUrl+"$"+sharelink);
+          
         }
     });
 }

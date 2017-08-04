@@ -10,77 +10,61 @@ var GameSpeedMotion = (function (_super) {
     __extends(GameSpeedMotion, _super);
     function GameSpeedMotion(stageW) {
         var _this = _super.call(this) || this;
-        _this.count = 5;
+        _this.count = 15;
         _this.index = 0;
         _this._person = new Bitmap("beibei_png"); //弹跳对象
         _this._stageW = stageW;
-        _this._person.width = 110;
-        _this._person.height = 110;
-        _this._person.x = 145;
-        _this._person.y = 350;
-        _this.addChildAt(_this._person, 99);
-        //person动画
-        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 250 }, 1300).call(function () {
-            egret.Tween.get(this._person).to({ x: 145, y: 350 }, 200);
-        }, _this);
-        var timer = new egret.Timer(300, _this.count);
-        timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);
-        timer.start();
         //火箭的声音
         var sound = new egret.Sound();
         sound.addEventListener(egret.Event.COMPLETE, function () {
             this._channel = sound.play(0, 0);
         }, _this);
         sound.load("resource/sound/rocket.mp3");
+        _this._place = new Bitmap("speed1_png");
+        _this._place.width = _this._stageW;
+        _this.addChild(_this._place);
+        _this.speedImage = new Bitmap("speed1_png");
+        _this.speedImage.width = _this._stageW;
+        _this.addChild(_this.speedImage);
+        _this._person.width = 110;
+        _this._person.height = 110;
+        _this._person.x = 145;
+        _this._person.y = 350;
+        _this.addChildAt(_this._person, 99);
+        //person动画
+        egret.Tween.get(_this._person).to({ x: _this._stageW - 150, y: 350 }, 1500);
+        var timer = new egret.Timer(100, _this.count);
+        timer.addEventListener(egret.TimerEvent.TIMER, _this.timerFunc, _this);
+        timer.start();
         return _this;
     }
     GameSpeedMotion.prototype.timerFunc = function (event) {
         this.index += 1;
-        if (this.speedImage && this.speedImage.parent) {
-            this.speedImage.parent.removeChild(this.speedImage);
-        }
-        ;
-        this.speedImage = new Bitmap("speed1_png");
-        this.speedImage.width = this._stageW;
-        this.addChild(this.speedImage);
-        this.swapChildren(this.speedImage, this._person);
-        var timer1 = new egret.Timer(100, 1);
-        timer1.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc1, this);
+        var timer1 = new egret.Timer(50, 1);
+        timer1.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
+            this.speedImage.texture = RES.getRes("speed2_png");
+            var timer2 = new egret.Timer(50, 1);
+            timer2.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
+                this.speedImage.texture = RES.getRes("speed3_png");
+                if (this.index == this.count) {
+                    if (this.speedImage && this.speedImage.parent) {
+                        this.speedImage.parent.removeChild(this.speedImage);
+                    }
+                    ;
+                    if (this._person && this._person.parent) {
+                        this._person.parent.removeChild(this._person);
+                    }
+                    ;
+                    if (this._place && this._place.parent) {
+                        this._place.parent.removeChild(this._place);
+                    }
+                    ;
+                    this._channel.stop();
+                }
+            }, this);
+            timer2.start();
+        }, this);
         timer1.start();
-    };
-    GameSpeedMotion.prototype.timerComFunc1 = function (event) {
-        if (this.speedImage && this.speedImage.parent) {
-            this.speedImage.parent.removeChild(this.speedImage);
-        }
-        ;
-        this.speedImage = new Bitmap("speed2_png");
-        this.speedImage.width = this._stageW;
-        this.addChild(this.speedImage);
-        this.swapChildren(this.speedImage, this._person);
-        var timer2 = new egret.Timer(100, 1);
-        timer2.addEventListener(egret.TimerEvent.TIMER_COMPLETE, this.timerComFunc2, this);
-        timer2.start();
-    };
-    GameSpeedMotion.prototype.timerComFunc2 = function (event) {
-        if (this.speedImage && this.speedImage.parent) {
-            this.speedImage.parent.removeChild(this.speedImage);
-        }
-        ;
-        this.speedImage = new Bitmap("speed3_png");
-        this.speedImage.width = this._stageW;
-        this.addChild(this.speedImage);
-        this.swapChildren(this.speedImage, this._person);
-        if (this.index == this.count) {
-            if (this.speedImage && this.speedImage.parent) {
-                this.speedImage.parent.removeChild(this.speedImage);
-            }
-            ;
-            if (this._person && this._person.parent) {
-                this._person.parent.removeChild(this._person);
-            }
-            ;
-            this._channel.stop();
-        }
     };
     return GameSpeedMotion;
 }(egret.Sprite));

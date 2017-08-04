@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "description_json,bg_mp3,countdown_mp3,down_mp3,jump_mp3,rocket_mp3,attention_png,balloon_png,beibei_png,bg_png,bingo_png,black_png,game_bottom_png,gamebody_json,letter_json,shareGui_png,speed1_png,speed2_png,speed3_png,step_png,wordBg_png,yun01_png,yun02_png,yun03_png,yun04_png",
+			"keys": "description_json,bg_mp3,countdown_mp3,down_mp3,jump_mp3,rocket_mp3,attention_png,balloon_png,beibei_png,bg_png,bingo_png,black_png,game_bottom_png,gamebody_json,letter_json,shareGui_png,step_png,wordBg_png,yun01_png,yun02_png,yun03_png,yun04_png,start_png,ranking_png,black2_png,shareGui2_png,speed1_png,speed2_png,speed3_png",
 			"name": "preload"
 		}
 	],
@@ -89,21 +89,6 @@
 			"url": "game/shareGui.png"
 		},
 		{
-			"name": "speed1_png",
-			"type": "image",
-			"url": "game/speed1.png"
-		},
-		{
-			"name": "speed2_png",
-			"type": "image",
-			"url": "game/speed2.png"
-		},
-		{
-			"name": "speed3_png",
-			"type": "image",
-			"url": "game/speed3.png"
-		},
-		{
 			"name": "step_png",
 			"type": "image",
 			"url": "game/step.png"
@@ -132,6 +117,41 @@
 			"name": "yun04_png",
 			"type": "image",
 			"url": "game/yun04.png"
+		},
+		{
+			"name": "start_png",
+			"type": "image",
+			"url": "game/start.png"
+		},
+		{
+			"name": "ranking_png",
+			"type": "image",
+			"url": "game/ranking.png"
+		},
+		{
+			"name": "black2_png",
+			"type": "image",
+			"url": "game/black2.png"
+		},
+		{
+			"name": "shareGui2_png",
+			"type": "image",
+			"url": "game/shareGui2.png"
+		},
+		{
+			"name": "speed1_png",
+			"type": "image",
+			"url": "game/speed1.png"
+		},
+		{
+			"name": "speed2_png",
+			"type": "image",
+			"url": "game/speed2.png"
+		},
+		{
+			"name": "speed3_png",
+			"type": "image",
+			"url": "game/speed3.png"
 		}
 	]
 }

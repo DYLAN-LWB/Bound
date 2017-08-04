@@ -9,11 +9,14 @@ class Game extends egret.DisplayObjectContainer {
 	//public
 	private _totalStepCount = 5;			//台阶数量
 	private _stepBeginX = 200; 				//初始x值 (台阶中心点为准)
-	private _lifeCount = 5;					//x条命
+	private _lifeCount = 10;					//x条命
 	private _lifeTF: egret.TextField;		//米数文字
 	private _score = 0;						//走的总米数
 	private _scoreTF: egret.TextField;		//米数文字
 	private _wordTF: egret.TextField;		//提示完成的单词
+	private _remindWordTF: egret.TextField;		//提示要吃的单词
+	private _remindExplainTF: egret.TextField;		//提示要吃的单词
+
 	// private _scends = 180;					//游戏默认180秒
 	// private _scendsTF: egret.TextField;		//倒计时文字
 	// private _gameTimer: egret.Timer;			//游戏倒计时计时器
@@ -27,6 +30,7 @@ class Game extends egret.DisplayObjectContainer {
 	private _letterTFArray = []; 		//字母textfield
 	private _letterImgArray = [];		//字母图片数组
 	private _allWords = [];				//所有单词数组,用来检测吃到的单词对错
+	private _allWordsExplain = [];				//所有单词数组,用来检测吃到的单词对错
 
 	private _normalAlert: Alert;	//弹窗提示
 
@@ -53,24 +57,23 @@ class Game extends egret.DisplayObjectContainer {
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.createGameScene, this);
     }
 
+	private _overAlert;
     private createGameScene() {
 		//游戏背景
 		let _gameBackground = new GameBackground(this.stage.stageWidth, this.stage.stageHeight);
 		this.addChild(_gameBackground);
 
 		this._info._vuid = localStorage.getItem("vuid").replace(/"/g,"");
-        this._info._key = localStorage.getItem("key").replace(/"/g,"");
+		this._info._key = localStorage.getItem("key").replace(/"/g,"");
 		this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g,"");
 		this._info._timenum = localStorage.getItem("timenum").replace(/"/g,"");
 		this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g,"");
-
 		//减游戏次数
 		this.minusGameCount();
     }
 
 	//接口-请求单词, 只在初次请求时添加UI
 	private getWords(type: number) {
-		// this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o"];
 
 		let params = "?vuid=" + this._info._vuid + 
 					 "&key=" + this._info._key +
@@ -101,17 +104,25 @@ class Game extends egret.DisplayObjectContainer {
 					this._letterTFArray.splice(0, this._letterTFArray.length);
 					this._letterImgArray.splice(0, this._letterImgArray.length);
 					this._stepsArray.splice(0, this._stepsArray.length);
+
+					this._allWords.splice(0, this._allWords.length);
+					this._allWordsExplain.splice(0, this._allWordsExplain.length);
 				}
 				let wordArray = [];
-
+				let explainArray = [];
 				for(let i = 0; i < result["data"].length; i++) {
-					wordArray.push(result["data"][i]["word"]);
+					let word = result["data"][i]["word"];
+					word = word.replace(/\s/g,"").replace(/\./g,"").toLowerCase();
+					wordArray.push(word);
+
+					let explain = result["data"][i]["explain"];
+					explainArray.push(explain);
 				}
 
 				Array.prototype.push.apply(this._allWords, wordArray); //将请求到的单词添加到大数组
-				let wordsString = wordArray.join().replace(/,/g,"").replace(/ /g,"").toLowerCase(); //将单词数组转为字符串,并且去掉所有逗号,转成小写
-				// alert("this._allWords = "+this._allWords);
+				Array.prototype.push.apply(this._allWordsExplain, explainArray); //将请求到的单词添加到大数组
 
+				let wordsString = wordArray.join().replace(/,/g,""); //将单词数组转为字符串,并且去掉所有逗号
 				let newLetters = wordsString.split("");	//将字母字符串转为数组
 				Array.prototype.push.apply(this._letterArray, newLetters); //追加到字母数组
 
@@ -121,12 +132,17 @@ class Game extends egret.DisplayObjectContainer {
 					this.setupPerson();	//添加游戏人物
 					this.setupReminder();	//添加提示信息,其他
 					this.addTouchEvent();	//添加touch事件
+
+					this._remindWordTF.text = "任务单词："+ this._allWords[0];
+					this._remindExplainTF.text = this._allWordsExplain[0];
 				} else if (type == 3) {
 					this.setupSteps();	//添加台阶
+					this._remindWordTF.text = "任务单词："+ this._allWords[0];
+					this._remindExplainTF.text = this._allWordsExplain[0];
 				}
 
 			} else {
-				alert("请求出错-"+result["msg"]);
+				alert(result["msg"]);
 			}
 		}, this);
 		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
@@ -215,10 +231,10 @@ class Game extends egret.DisplayObjectContainer {
 	private setupReminder() {
 
 		let wordBg = new Bitmap("wordBg_png");
-		wordBg.x = this.stage.stageWidth*0.3;
+		wordBg.x = (this.stage.stageWidth-454)/2;
 		wordBg.y = 0;
-		wordBg.width = this.stage.stageWidth*0.4;
-		wordBg.height = 100;
+		wordBg.width = 454;
+		wordBg.height = 96;
 		this.addChild(wordBg);
 
 		//单词提示
@@ -247,6 +263,7 @@ class Game extends egret.DisplayObjectContainer {
 		this._scoreTF.fontFamily = "Microsoft YaHei"
         this.addChild(this._scoreTF);
 
+		//生命
 		this._lifeTF = new egret.TextField();
 		this._lifeTF.x = this.stage.stageWidth*0.05;
 		this._lifeTF.y = 20;
@@ -258,6 +275,31 @@ class Game extends egret.DisplayObjectContainer {
         this._lifeTF.text = "您还有"+this._lifeCount+"条命";
 		this._lifeTF.fontFamily = "Microsoft YaHei"
         this.addChild(this._lifeTF);
+
+		//单词提示器
+		this._remindWordTF = new egret.TextField();
+		this._remindWordTF.x = this.stage.stageWidth*0.7;
+		this._remindWordTF.y = 20;
+		this._remindWordTF.width = this.stage.stageWidth*0.28;
+		this._remindWordTF.height = 50;
+        this._remindWordTF.textColor = 0xff6600;
+		this._remindWordTF.textAlign = egret.HorizontalAlign.LEFT;
+        this._remindWordTF.size = 25;
+        this._remindWordTF.text = "任务单词：";
+		this._remindWordTF.fontFamily = "Microsoft YaHei"
+        this.addChild(this._remindWordTF);
+
+		this._remindExplainTF = new egret.TextField();
+		this._remindExplainTF.x = this.stage.stageWidth*0.7;
+		this._remindExplainTF.y = 70;
+		this._remindExplainTF.width = this.stage.stageWidth*0.28;
+		this._remindExplainTF.height = 100;
+        this._remindExplainTF.textColor = 0xff3a68;
+		this._remindExplainTF.textAlign = egret.HorizontalAlign.LEFT;
+        this._remindExplainTF.size = 25;
+		this._remindExplainTF.lineSpacing = 6;
+		this._remindExplainTF.fontFamily = "Microsoft YaHei"
+        this.addChild(this._remindExplainTF);
 
 
 		// //倒计时提示
@@ -396,11 +438,10 @@ class Game extends egret.DisplayObjectContainer {
 		let controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y)/2-15;
 
 		//画箭头
- 		this._guideLine.graphics.lineStyle(3,0x000000);
+ 		this._guideLine.graphics.lineStyle(3,0x34b29a);
         this._guideLine.graphics.moveTo(this._personBeginPoint.x, this._personBeginPoint.y);	//起点
 		this._guideLine.graphics.curveTo(controlX, controlY, this._touchMoveToX, this._touchMoveToY);	//控制点,终点
         this._guideLine.graphics.endFill();
-		this._guideLine.alpha = 0.3;
         this.addChild(this._guideLine);
 	}
 
@@ -643,14 +684,19 @@ class Game extends egret.DisplayObjectContainer {
 
 		for(let i = 0; i < this._allWords.length; i++) {
 			let check = this._allWords[i].replace(".","").replace(" ","").toLowerCase();
-			this.checkWord(check);
+			this.checkWord(check, i);
 		}
 	}
 
-	private checkWord(word: string) {
+	private checkWord(word: string, index:number) {
+		console.log(word);
+		//_allWords
+
 
 		if(this._wordTF.text.replace("单词：","").replace(".","") == word){
 
+			this._remindWordTF.text = "任务单词："+ this._allWords[index+1];
+			this._remindExplainTF.text = this._allWordsExplain[index+1];
 			this.removeTouchEvent();
 
 			//增加分数
@@ -665,23 +711,23 @@ class Game extends egret.DisplayObjectContainer {
 			this.addChild(right);
 
 			//请求单词读音
-			let request = new egret.HttpRequest();
-			request.responseType = egret.HttpResponseType.TEXT;
-			request.open("http://www.iciba.com/index.php?a=getWordMean&c=search&word=" + "apple", egret.HttpMethod.GET);
-			request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-			request.send();
-			request.addEventListener(egret.Event.COMPLETE, function() {
+			// let request = new egret.HttpRequest();
+			// request.responseType = egret.HttpResponseType.TEXT;
+			// request.open("http://www.iciba.com/index.php?a=getWordMean&c=search&word=" + word, egret.HttpMethod.GET);
+			// request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			// request.send();
+			// request.addEventListener(egret.Event.COMPLETE, function() {
 
-				let result = JSON.parse(request.response);
-				if(result["baesInfo"]["symbols"].length>0) {
-					let voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"]
-					let sound = new egret.Sound();
-					sound.addEventListener(egret.Event.COMPLETE, function() {
-						let channel:egret.SoundChannel = sound.play(0,1);
-					}, this);
-					sound.load(voiceUrl);
-				}  
-			}, this);
+			// 	let result = JSON.parse(request.response);
+			// 	if(result["baesInfo"]["symbols"].length>0) {
+			// 		let voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"]
+			// 		let sound = new egret.Sound();
+			// 		sound.addEventListener(egret.Event.COMPLETE, function() {
+			// 			let channel:egret.SoundChannel = sound.play(0,1);
+			// 		}, this);
+			// 		sound.load(voiceUrl);
+			// 	}  
+			// }, this);
 
 			//加速时 时间稍微往后 加米数
 			let timer: egret.Timer = new egret.Timer(500, 1);
@@ -690,6 +736,7 @@ class Game extends egret.DisplayObjectContainer {
 				//加速动画 300 * 5
 				this.addChild(new GameSpeedMotion(this.stage.stageWidth));
 
+				this.removeTouchEvent();
 
 				let add: egret.Timer = new egret.Timer(300, 1);
 				add.addEventListener(egret.TimerEvent.TIMER_COMPLETE,function() {
@@ -725,9 +772,6 @@ class Game extends egret.DisplayObjectContainer {
 					 "&timenum=" + this._info._timenum + 
 					 "&activitynum=" + this._info._activitynum + 
 					 "&isfrom=" + this._info._isfrom;
-
-		// alert("加分接口 - "+this._info._typosTempjump + params);
-
 		let request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._typosTempjump+params, egret.HttpMethod.GET);
@@ -735,7 +779,7 @@ class Game extends egret.DisplayObjectContainer {
         request.send();
 		request.addEventListener(egret.Event.COMPLETE, function() {
 			let result = JSON.parse(request.response);
-			alert(this._info._typosTempjump + "---"+ params + "---"+result["code"] + "---"+result["msg"]);
+			// alert(this._info._typosTempjump + "---"+ params + "---"+result["code"] + "---"+result["msg"]);
 			console.log(result);
 		}, this);
 		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
@@ -767,8 +811,15 @@ class Game extends egret.DisplayObjectContainer {
 
 				//请求单词
 				this.getWords(1);
-			} else {
-				alert("请求出错-"+result["msg"]);
+
+			} else if(result["code"] == 2){
+
+				this._overAlert = new Alert(Alert.GamePageShare, "", "", "",0,this.stage.stageHeight,this.stage.stageWidth);
+				this._overAlert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
+				this._overAlert.addEventListener(AlertEvent.Cancle, function() {
+        			window.location.reload();
+				}, this);
+				this.addChild(this._overAlert);
 			}
 		}, this);
 		request.addEventListener(egret.IOErrorEvent.IO_ERROR, function() {
@@ -833,7 +884,7 @@ class Game extends egret.DisplayObjectContainer {
         this.removeChildren();
         // this._scends = 180;
         this._score = 0;
-		this._lifeCount = 5;
+		this._lifeCount = 10;
 		this._gameEnd = false;
 		
 		//重玩时清空数组
@@ -842,8 +893,25 @@ class Game extends egret.DisplayObjectContainer {
 		this._letterTFArray.splice(0, this._letterTFArray.length);
 		this._letterImgArray.splice(0, this._letterImgArray.length);
 		this._allWords.splice(0, this._allWords.length);
+		this._allWordsExplain.splice(0, this._allWordsExplain.length);
 
 		//重新添加游戏场景
 		this.createGameScene();
+    }
+
+	private shareButtonClick() {
+        // this.removeChild(this._overAlert);
+
+        //分享引导图
+        let _shareGuide = new Bitmap("shareGui2_png");
+        _shareGuide.touchEnabled = true;
+        _shareGuide.x =  0;
+        _shareGuide.y =  0 ;
+        _shareGuide.width = this.stage.stageWidth ;
+        _shareGuide.height = this.stage.stageHeight ;
+        _shareGuide.addEventListener(egret.TouchEvent.TOUCH_TAP, function() {
+            this.removeChild(_shareGuide);
+        }, this);
+		this.addChild(_shareGuide);
     }
 }

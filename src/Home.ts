@@ -45,16 +45,16 @@ class Home extends egret.DisplayObjectContainer {
 
         //test app url
 		// this._pageUrl = "http://ceshi.beisu100.com/actity/90001/index.html?uid=5&key=1241ea11b7f3b5bf852b3bbc428ef209&isfrom=0&activitynum=9&timenum=1";
-        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=68384&key=72270ed2b481ad4070af0d26dca64c60&isfrom=1&activitynum=9&timenum=1";
-
+        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=5&key=9005e25fa4db0478626e6993e3c38cee&isfrom=1&activitynum=9&timenum=1";
+        // alert("666666");
         // alert("this._pageUrl = " + this._pageUrl);
         //解析url参数
         var params = this.getUrlParams();
-        this._info._vuid = params["uid"];
-        this._info._key = params["key"];
-        this._info._isfrom = params["isfrom"];
-        this._info._timenum = params["timenum"];
-        this._info._activitynum = params["activitynum"];
+        this._info._vuid = params["uid"].replace(/"/g,"");
+        this._info._key = params["key"].replace(/"/g,"");
+        this._info._isfrom = params["isfrom"].replace(/"/g,"");
+        this._info._timenum = params["timenum"].replace(/"/g,"");
+        this._info._activitynum = params["activitynum"].replace(/"/g,"");
 
         //保存信息
         localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
@@ -63,8 +63,11 @@ class Home extends egret.DisplayObjectContainer {
         localStorage.setItem("timenum", JSON.stringify(this._info._timenum))
         localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
 
+        // alert("_key = "+this._info._key);
+
         //app在排行榜点击重玩 会重新加载首页, 没有id key
         if(this._info._key.length < 8) {
+            // alert("uid = "+this._info._vuid);
             this._info._vuid = localStorage.getItem("vuid").replace(/"/g,"");
             this._info._key = localStorage.getItem("key").replace(/"/g,"");
 		    this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g,"");
@@ -72,119 +75,18 @@ class Home extends egret.DisplayObjectContainer {
 		    this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g,"");
         }
 
-        //设置页面
-        this.setupUI();
+        if (this._info._key == null) {
+			alert("请先登录！");
+        }
 
         //获取用户剩余挑战次数
         if (parseInt(this._info._isfrom) == 0) {
             this.getUserCanPalyNumber();
-        }
-
-        if (this._info._key == null) {
-			alert("请先登录！");
+        } else {
+            this.setupUI();
         }
     }
 
-    private setupUI() {
-		//微信=0 app=1
-        if (parseInt(this._info._isfrom) == 0) {
-            var introduce = new egret.TextField();
-            introduce.x = this._isPortraitScreen ? 370 : 550;
-            introduce.y = this._isPortraitScreen ? 600 : 375;
-            introduce.textFlow = <Array<egret.ITextElement>>[
-                {
-                    text: "手指移动控制倍倍方向，根据记忆力判断正确位置，掉落即游戏结束。按照最高分进行排名，排名前50都有红包奖励。此外，还会随机抽取100名发送幸运红包哦~",
-                    style: {"textColor": 0x275b51, "size": 28}
-                },
-                {
-                    text: "分享给好友，让好友为你加油，可增加机会呦~", 
-                    style: {"textColor": 0xff6600, "size": 28}
-                }
-            ];
-            introduce.lineSpacing = 15;
-            introduce.width = 600;
-            introduce.anchorOffsetX = introduce.width / 2;
-            introduce.anchorOffsetY = introduce.height / 2;
-            introduce.rotation = this._isPortraitScreen ? 0 : -90;
-            this.addChild(introduce);
-
-			//剩余挑战机会
-            this._playNumText = new egret.TextField();
-            this._playNumText.size = 30;
-            this._playNumText.x = this._isPortraitScreen ? 220 : 690;
-            this._playNumText.y = this._isPortraitScreen ? 780 : 520;
-            this._playNumText.rotation = this._isPortraitScreen ? 0 : -90;
-            this._playNumText.textColor = 0x275b51;
-            this._playNumText.anchorOffsetX = this._playNumText.width / 2;
-            this._playNumText.anchorOffsetY = this._playNumText.height / 2;
-            this._playNumText.text = "您当前有0次挑战机会";
-            this.addChild(this._playNumText);
-
-            //开始游戏按钮
-            this._startButton = new Bitmap("gamebody_json.start");
-            this._startButton.x = this._isPortraitScreen ? 180 : 750;
-            this._startButton.y = this._isPortraitScreen ? 820 : 570;
-            this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
-            this._startButton.touchEnabled = true;
-            this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startPlayGame, this);
-            this.addChild(this._startButton);
-
-			//查看排名按钮
-            this._rankButton = new Bitmap("gamebody_json.ranking");
-            this._rankButton.x = this._isPortraitScreen ? 180 : 880;
-            this._rankButton.y = this._isPortraitScreen ? 990 : 570;
-            this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
-            this._rankButton.touchEnabled = true;
-            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
-            this.addChild(this._rankButton);
-
-        } else if (parseInt(this._info._isfrom) == 1) {
-			//app端 页面简化
-            this._startButton = new Bitmap("gamebody_json.start");
-            this._startButton.x = this._isPortraitScreen ? 180 : 600;
-            this._startButton.y = this._isPortraitScreen ? 760 : 570;
-            this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
-            this._startButton.touchEnabled = true;
-            this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startPlayGame, this);
-            this.addChild(this._startButton);
-
-            this._rankButton = new Bitmap("gamebody_json.ranking");
-            this._rankButton.x = this._isPortraitScreen ? 180 : 800;
-            this._rankButton.y = this._isPortraitScreen ? 910 : 570;
-            this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
-            this._rankButton.touchEnabled = true;
-            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
-            this.addChild(this._rankButton);
-        }
-
-    }
-
-	//查看排名
-    private checkRanking(evt:egret.TouchEvent) {
-        console.log("查看排名");
-        // alert(this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom);
-        window.location.href = this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
-    }
-
-	//开始游戏
-    private startPlayGame(evt:egret.TouchEvent) {
-
-        console.log("开始游戏");
-        //避免重复点击使游戏次数出错
-        this._rankButton.touchEnabled = false;
-        this._startButton.touchEnabled = false;
-
-        //微信端检查是否关注
-        if (parseInt(this._info._isfrom) == 0) {
-            this.checkIsAttention();
-        } else { //app直接进入游戏页面
-            $("#guangao").hide();
-            this.removeChildren();
-            this.addChild(new Game());
-        }
-    }
-
-    //获取用户剩余次数
     private getUserCanPalyNumber() {
 
         var params = "?vuid=" + this._info._vuid + 
@@ -192,18 +94,20 @@ class Home extends egret.DisplayObjectContainer {
                      "&timenum=" + this._info._timenum +
                      "&activitynum=" + this._info._activitynum + 
                      "&isfrom=" + this._info._isfrom;
-
-        // alert("剩余接口 - "+this._info._canPalyNumber + params);
-
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._canPalyNumber + params, egret.HttpMethod.GET);
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function() {
             let result = JSON.parse(request.response);
+            // alert(result["code"] + "----" +this._info._canPalyNumber + params);
             if (result["code"] == 0) {
+
+                this.setupUI();
+                
                 this._playCount = result["data"]["num"];
                 this._playNumText.text = "您当前有" + this._playCount + "次挑战机会";
+                
                 if (result["data"]["isend"] != 0) {
                     this.removeChild(this._startButton);
                     this._overButton = new Bitmap("gamebody_json.ending");
@@ -225,6 +129,138 @@ class Home extends egret.DisplayObjectContainer {
         }, this);
     }
 
+    private setupUI() {
+		//微信=0 app=1
+        if (parseInt(this._info._isfrom) == 0) {
+            var introduce = new egret.TextField();
+            introduce.x = this._isPortraitScreen ? 370 : 480;
+            introduce.y = this._isPortraitScreen ? 600 : 375;
+            introduce.textFlow = <Array<egret.ITextElement>>[
+                { text: "通过手指力度控制倍倍的跳跃轨迹，使其成功捡到单词，单词完整后加速跳跃。按照倍倍走过的最远距离进行排名，排名前50都有红包奖励。此外，还会随机抽取100名发送幸运红包哦~ ",
+                    style: {"textColor": 0x185b4e, "size": 28} },
+                { text: "分享给好友，让好友为你加油，可增加机会呦~",  
+                style: {"textColor": 0xff3a5f, "size": 28} } ];
+            introduce.lineSpacing = 15;
+            introduce.width = 600;
+            introduce.anchorOffsetX = introduce.width / 2;
+            introduce.anchorOffsetY = introduce.height / 2;
+            introduce.rotation = this._isPortraitScreen ? 0 : -90;
+            this.addChild(introduce);
+
+			//剩余挑战机会
+            this._playNumText = new egret.TextField();
+            this._playNumText.size = 30;
+            this._playNumText.x = this._isPortraitScreen ? 220 : 620;
+            this._playNumText.y = this._isPortraitScreen ? 780 : 520;
+            this._playNumText.rotation = this._isPortraitScreen ? 0 : -90;
+            this._playNumText.textColor = 0x275b51;
+            this._playNumText.anchorOffsetX = this._playNumText.width / 2;
+            this._playNumText.anchorOffsetY = this._playNumText.height / 2;
+            this._playNumText.text = "您当前有0次挑战机会";
+            this.addChild(this._playNumText);
+
+            //开始游戏按钮
+            this._startButton = new Bitmap("start_png");
+            this._startButton.x = this._isPortraitScreen ? 180 : 700;
+            this._startButton.y = this._isPortraitScreen ? 820 : 570;
+            this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
+            this._startButton.touchEnabled = true;
+            this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startPlayGame, this);
+            this.addChild(this._startButton);
+
+			//查看排名按钮
+            this._rankButton = new Bitmap("ranking_png");
+            this._rankButton.x = this._isPortraitScreen ? 180 : 850;
+            this._rankButton.y = this._isPortraitScreen ? 990 : 570;
+            this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
+            this._rankButton.touchEnabled = true;
+            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
+            this.addChild(this._rankButton);
+
+        } else if (parseInt(this._info._isfrom) == 1) {
+
+             var introduce = new egret.TextField();
+            introduce.x = this._isPortraitScreen ? 370 : 480;
+            introduce.y = this._isPortraitScreen ? 600 : 375;
+            introduce.text = "通过手指力度控制倍倍的跳跃轨迹，使其成功捡到单词，单词完整后加速跳跃。 ";
+            introduce.lineSpacing = 15;
+            introduce.width = 600;
+            introduce.textColor = 0x185b4e;
+            introduce.size = 28;
+            introduce.anchorOffsetX = introduce.width / 2;
+            introduce.anchorOffsetY = introduce.height / 2;
+            introduce.rotation = this._isPortraitScreen ? 0 : -90;
+            this.addChild(introduce);
+
+			//app端 页面简化
+            this._startButton = new Bitmap("start_png");
+            this._startButton.x = this._isPortraitScreen ? 180 : 660;
+            this._startButton.y = this._isPortraitScreen ? 760 : 570;
+            this._startButton.rotation = this._isPortraitScreen ? 0 : -90;
+            this._startButton.touchEnabled = true;
+            this._startButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.startPlayGame, this);
+            this.addChild(this._startButton);
+
+            this._rankButton = new Bitmap("ranking_png");
+            this._rankButton.x = this._isPortraitScreen ? 180 : 850;
+            this._rankButton.y = this._isPortraitScreen ? 910 : 570;
+            this._rankButton.rotation = this._isPortraitScreen ? 0 : -90;
+            this._rankButton.touchEnabled = true;
+            this._rankButton.addEventListener(egret.TouchEvent.TOUCH_TAP, this.checkRanking, this);
+            this.addChild(this._rankButton);
+        }
+    }
+
+	//查看排名
+    private checkRanking(evt:egret.TouchEvent) {
+        console.log("查看排名");
+        if(this._info._key.length < 8) {
+            alert("uid = "+this._info._vuid);
+            this._info._vuid = localStorage.getItem("vuid");
+            this._info._key = localStorage.getItem("key");
+		    this._info._isfrom = localStorage.getItem("isfrom");
+		    this._info._timenum = localStorage.getItem("timenum");
+		    this._info._activitynum = localStorage.getItem("activitynum");
+        }
+        window.location.href = this._info._rankUrl + this._info._timenum + "/activitynum/" + this._info._activitynum + "/vuid/" + this._info._vuid + "/key/" + this._info._key + "/isfrom/" + this._info._isfrom;
+    }
+
+	//开始游戏
+    private startPlayGame(evt:egret.TouchEvent) {
+
+        if(this._info._key.length < 8) {
+            this._info._vuid = localStorage.getItem("vuid");
+            this._info._key = localStorage.getItem("key");
+		    this._info._isfrom = localStorage.getItem("isfrom");
+		    this._info._timenum = localStorage.getItem("timenum");
+		    this._info._activitynum = localStorage.getItem("activitynum");
+        } 
+
+        //避免重复点击使游戏次数出错
+        this._rankButton.touchEnabled = false;
+        this._startButton.touchEnabled = false;
+
+        //微信端检查是否关注
+        if (parseInt(this._info._isfrom) == 0) {
+            if(this._playCount < 1){
+                //没有次数点击开始游戏时提示分享
+                this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight,this.stage.stageWidth);
+                this._alert.x = this._isPortraitScreen ? 0 : 0;
+                this._alert.y = this._isPortraitScreen ? 0 : 750;
+                this._alert.rotation = this._isPortraitScreen ? 0 : -90;
+                this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
+                this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
+                this.addChild(this._alert);
+            } else {
+                this.checkIsAttention();
+            }
+        } else { //app直接进入游戏页面
+            $("#guangao").hide();
+            this.removeChildren();
+            this.addChild(new Game());
+        }
+    }
+
     //检查是否关注
     private checkIsAttention() {
 
@@ -240,15 +276,7 @@ class Home extends egret.DisplayObjectContainer {
                     $("#guangao").hide();
                     this.removeChildren();
                     this.addChild(new Game());
-                } else { //弹窗获取次数, 没有跳转次数点击开始游戏时提示分享
-                    this._alert = new Alert(Alert.HomePageShare, "", "", "",0,this.stage.stageHeight,this.stage.stageWidth);
-                    this._alert.x = this._isPortraitScreen ? 0 : 0;
-                    this._alert.y = this._isPortraitScreen ? 0 : 750;
-                    this._alert.rotation = this._isPortraitScreen ? 0 : -90;
-                    this._alert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
-                    this._alert.addEventListener(AlertEvent.Cancle, this.cancleButtonClick, this);
-                    this.addChild(this._alert);
-                }
+                } 
             } else if (result["code"] == 2) { //未关注 进入关注界面
                 this._rankButton.touchEnabled = true;
                 this._startButton.touchEnabled = true;

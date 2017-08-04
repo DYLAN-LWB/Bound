@@ -20,16 +20,33 @@ var Alert = (function (_super) {
         _this.descstate = descstate;
         _this.screenwith = screenwith;
         _this.screenHeight = screenHeight;
+        // if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) { //判断iPhone|iPad|iPod|iOS
+        //     this.screenwith = screenwith;
+        //     this.screenHeight = screenHeight;
+        // } else if (/(Android)/i.test(navigator.userAgent)) {  //判断Android
+        //     this.screenwith = 800;
+        //     this.screenHeight = 1196;
+        // }
         _this.initView();
         return _this;
     }
     Alert.prototype.initView = function () {
-        var bg = new Bitmap("black_png");
+        var bg;
+        if (this.type == 3) {
+            bg = new Bitmap("black2_png");
+        }
+        else {
+            bg = new Bitmap("black_png");
+        }
         bg.height = this.screenHeight;
         bg.width = this.screenwith;
         if (this.type == 2) {
             bg.x = -250;
             bg.y = 100;
+            bg.height = this.screenwith;
+            bg.width = this.screenHeight;
+        }
+        if (this.type == 3) {
             bg.height = this.screenwith;
             bg.width = this.screenHeight;
         }
@@ -79,23 +96,23 @@ var Alert = (function (_super) {
                 gameover.y = 480;
                 gameover.anchorOffsetX = gameover.width / 2;
                 gameover.anchorOffsetY = gameover.height / 2;
-                // if(this.descstate==1){
-                var text = new egret.TextField();
-                text.x = 140;
-                text.y = 380;
-                text.size = 32;
-                text.fontFamily = "Microsoft YaHei";
-                text.verticalAlign = egret.VerticalAlign.BOTTOM;
-                text.textFlow = [
-                    {
-                        text: "防作弊系统检测:",
-                        style: { "textColor": 0x7a2c47, "size": 22 }
-                    },
-                    { text: "成绩无效,如有问题,请联系客服", style: { "textColor": 0xff1e00, "size": 22 } }
-                ];
-                text.anchorOffsetY = text.height / 2;
-                this.addChild(text);
-                // }
+                if (this.descstate == 1) {
+                    var text = new egret.TextField();
+                    text.x = 140;
+                    text.y = 380;
+                    text.size = 32;
+                    text.fontFamily = "Microsoft YaHei";
+                    text.verticalAlign = egret.VerticalAlign.BOTTOM;
+                    text.textFlow = [
+                        {
+                            text: "防作弊系统检测:",
+                            style: { "textColor": 0x7a2c47, "size": 22 }
+                        },
+                        { text: "成绩无效,如有问题,请联系客服", style: { "textColor": 0xff1e00, "size": 22 } }
+                    ];
+                    text.anchorOffsetY = text.height / 2;
+                    this.addChild(text);
+                }
                 var score = new egret.TextField();
                 score.x = 420;
                 score.y = 420;
@@ -147,14 +164,14 @@ var Alert = (function (_super) {
                 break;
             case 3:
                 var alertbggame = new Bitmap("gamebody_json.prompt_03");
-                this.addChild(alertbggame);
-                alertbggame.x = 370;
-                alertbggame.y = 480;
+                alertbggame.x = 370 + 250;
+                alertbggame.y = 480 - 140;
                 alertbggame.anchorOffsetX = alertbggame.width / 2;
                 alertbggame.anchorOffsetY = alertbggame.height / 2;
+                this.addChild(alertbggame);
                 var decgame = new egret.TextField();
-                decgame.x = 370;
-                decgame.y = 460;
+                decgame.x = 370 + 250;
+                decgame.y = 460 - 140;
                 decgame.size = 30;
                 decgame.fontFamily = "Microsoft YaHei";
                 decgame.verticalAlign = egret.VerticalAlign.BOTTOM;
@@ -166,21 +183,21 @@ var Alert = (function (_super) {
                 decgame.anchorOffsetY = decgame.height / 2;
                 this.addChild(decgame);
                 var canclebtgame = new Bitmap("gamebody_json.btn_03");
-                this.addChild(canclebtgame);
-                canclebtgame.x = 230;
-                canclebtgame.y = 610;
+                canclebtgame.x = 230 + 250;
+                canclebtgame.y = 610 - 140;
                 canclebtgame.anchorOffsetX = canclebtgame.width / 2;
                 canclebtgame.anchorOffsetY = canclebtgame.height / 2;
                 canclebtgame.touchEnabled = true;
                 canclebtgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
+                this.addChild(canclebtgame);
                 var sharebtgame = new Bitmap("gamebody_json.btn_05");
-                this.addChild(sharebtgame);
-                sharebtgame.x = 510;
-                sharebtgame.y = 610;
+                sharebtgame.x = 510 + 250;
+                sharebtgame.y = 610 - 140;
                 sharebtgame.anchorOffsetX = sharebtgame.width / 2;
                 sharebtgame.anchorOffsetY = sharebtgame.height / 2;
                 sharebtgame.touchEnabled = true;
                 sharebtgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.shareGame, this);
+                this.addChild(sharebtgame);
                 break;
         }
     };

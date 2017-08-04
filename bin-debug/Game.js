@@ -23,6 +23,7 @@ var Game = (function (_super) {
         _this._letterTFArray = []; //字母textfield
         _this._letterImgArray = []; //字母图片数组
         _this._allWords = []; //所有单词数组,用来检测吃到的单词对错
+        _this._allWordsExplain = []; //所有单词数组,用来检测吃到的单词对错
         _this._person = new Bitmap("beibei_png"); //弹跳对象
         _this._personBeginPoint = new egret.Point(0, 0); //对象出发点
         _this._personTopY = 350; //对象的Y值,控制弹跳对象和台阶
@@ -43,23 +44,16 @@ var Game = (function (_super) {
         this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g, "");
         this._info._timenum = localStorage.getItem("timenum").replace(/"/g, "");
         this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g, "");
-        var testAlert = new Alert(Alert.GamePageScore, this._score.toString(), "333", "1", 2, this.stage.stageHeight, this.stage.stageWidth);
-        testAlert.x = 250;
-        testAlert.y = -100;
-        testAlert.addEventListener(AlertEvent.Ranking, this.checkRanking, this);
-        testAlert.addEventListener(AlertEvent.Restart, this.restartGame, this);
-        this.addChild(testAlert);
         //减游戏次数
         this.minusGameCount();
     };
     //接口-请求单词, 只在初次请求时添加UI
     Game.prototype.getWords = function (type) {
-        // this._letterArray = ["g","o","o","d","a","p","p","l","e","j","k","l","m","n","o"];
         var params = "?vuid=" + this._info._vuid +
             "&key=" + this._info._key +
             "&rands=" + this._rands +
             "&isfrom=" + this._info._isfrom;
-        alert("请求单词接口 - " + this._info._getWord + params);
+        // alert("请求单词接口 - "+this._info._getWord + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._getWord + params, egret.HttpMethod.GET);
@@ -82,17 +76,21 @@ var Game = (function (_super) {
                     this._letterTFArray.splice(0, this._letterTFArray.length);
                     this._letterImgArray.splice(0, this._letterImgArray.length);
                     this._stepsArray.splice(0, this._stepsArray.length);
+                    this._allWords.splice(0, this._allWords.length);
+                    this._allWordsExplain.splice(0, this._allWordsExplain.length);
                 }
                 var wordArray = [];
+                var explainArray = [];
                 for (var i = 0; i < result["data"].length; i++) {
-                    wordArray.push(result["data"][i]["word"]);
-                    if (i == 0) {
-                        alert("单词请求成功" + result["data"][0]["word"]);
-                    }
+                    var word = result["data"][i]["word"];
+                    word = word.replace(/\s/g, "").replace(/\./g, "").toLowerCase();
+                    wordArray.push(word);
+                    var explain = result["data"][i]["explain"];
+                    explainArray.push(explain);
                 }
                 Array.prototype.push.apply(this._allWords, wordArray); //将请求到的单词添加到大数组
-                var wordsString = wordArray.join().replace(/,/g, "").replace(/ /g, "").toLowerCase(); //将单词数组转为字符串,并且去掉所有逗号,转成小写
-                // alert("this._allWords = "+this._allWords);
+                Array.prototype.push.apply(this._allWordsExplain, explainArray); //将请求到的单词添加到大数组
+                var wordsString = wordArray.join().replace(/,/g, ""); //将单词数组转为字符串,并且去掉所有逗号
                 var newLetters = wordsString.split(""); //将字母字符串转为数组
                 Array.prototype.push.apply(this._letterArray, newLetters); //追加到字母数组
                 //接口请求成功添加UI
@@ -101,14 +99,21 @@ var Game = (function (_super) {
                     this.setupPerson(); //添加游戏人物
                     this.setupReminder(); //添加提示信息,其他
                     this.addTouchEvent(); //添加touch事件
+                    this._remindWordTF.text = "任务单词：" + this._allWords[0];
+                    this._remindExplainTF.text = this._allWordsExplain[0];
                 }
                 else if (type == 3) {
                     this.setupSteps(); //添加台阶
+                    this._remindWordTF.text = "任务单词：" + this._allWords[0];
+                    this._remindExplainTF.text = this._allWordsExplain[0];
                 }
             }
             else {
-                alert("请求出错-" + result["msg"]);
+                alert(result["msg"]);
             }
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+            alert("post error : " + event);
         }, this);
     };
     //设置台阶
@@ -176,10 +181,10 @@ var Game = (function (_super) {
     //设置提示文字,分数,倒计时
     Game.prototype.setupReminder = function () {
         var wordBg = new Bitmap("wordBg_png");
-        wordBg.x = this.stage.stageWidth * 0.3;
+        wordBg.x = (this.stage.stageWidth - 454) / 2;
         wordBg.y = 0;
-        wordBg.width = this.stage.stageWidth * 0.4;
-        wordBg.height = 100;
+        wordBg.width = 454;
+        wordBg.height = 96;
         this.addChild(wordBg);
         //单词提示
         this._wordTF = new egret.TextField();
@@ -205,6 +210,7 @@ var Game = (function (_super) {
         this._scoreTF.text = "您已经走了" + this._score + "米";
         this._scoreTF.fontFamily = "Microsoft YaHei";
         this.addChild(this._scoreTF);
+        //生命
         this._lifeTF = new egret.TextField();
         this._lifeTF.x = this.stage.stageWidth * 0.05;
         this._lifeTF.y = 20;
@@ -216,6 +222,29 @@ var Game = (function (_super) {
         this._lifeTF.text = "您还有" + this._lifeCount + "条命";
         this._lifeTF.fontFamily = "Microsoft YaHei";
         this.addChild(this._lifeTF);
+        //单词提示器
+        this._remindWordTF = new egret.TextField();
+        this._remindWordTF.x = this.stage.stageWidth * 0.7;
+        this._remindWordTF.y = 20;
+        this._remindWordTF.width = this.stage.stageWidth * 0.28;
+        this._remindWordTF.height = 50;
+        this._remindWordTF.textColor = 0xff6600;
+        this._remindWordTF.textAlign = egret.HorizontalAlign.LEFT;
+        this._remindWordTF.size = 25;
+        this._remindWordTF.text = "任务单词：";
+        this._remindWordTF.fontFamily = "Microsoft YaHei";
+        this.addChild(this._remindWordTF);
+        this._remindExplainTF = new egret.TextField();
+        this._remindExplainTF.x = this.stage.stageWidth * 0.7;
+        this._remindExplainTF.y = 70;
+        this._remindExplainTF.width = this.stage.stageWidth * 0.28;
+        this._remindExplainTF.height = 100;
+        this._remindExplainTF.textColor = 0xff3a68;
+        this._remindExplainTF.textAlign = egret.HorizontalAlign.LEFT;
+        this._remindExplainTF.size = 25;
+        this._remindExplainTF.lineSpacing = 6;
+        this._remindExplainTF.fontFamily = "Microsoft YaHei";
+        this.addChild(this._remindExplainTF);
         // //倒计时提示
         // this._scendsTF = new egret.TextField();
         // this._scendsTF.x = this.stage.stageWidth*0.75;
@@ -327,11 +356,10 @@ var Game = (function (_super) {
         var controlX = this._personBeginPoint.x + (this._touchMoveToX - this._personBeginPoint.x) / 2;
         var controlY = this._personBeginPoint.y + (this._touchMoveToY - this._personBeginPoint.y) / 2 - 15;
         //画箭头
-        this._guideLine.graphics.lineStyle(3, 0x000000);
+        this._guideLine.graphics.lineStyle(3, 0x34b29a);
         this._guideLine.graphics.moveTo(this._personBeginPoint.x, this._personBeginPoint.y); //起点
         this._guideLine.graphics.curveTo(controlX, controlY, this._touchMoveToX, this._touchMoveToY); //控制点,终点
         this._guideLine.graphics.endFill();
-        this._guideLine.alpha = 0.3;
         this.addChild(this._guideLine);
     };
     //触摸结束
@@ -528,11 +556,15 @@ var Game = (function (_super) {
         this._wordTF.text += letter;
         for (var i = 0; i < this._allWords.length; i++) {
             var check = this._allWords[i].replace(".", "").replace(" ", "").toLowerCase();
-            this.checkWord(check);
+            this.checkWord(check, i);
         }
     };
-    Game.prototype.checkWord = function (word) {
+    Game.prototype.checkWord = function (word, index) {
+        console.log(word);
+        //_allWords
         if (this._wordTF.text.replace("单词：", "").replace(".", "") == word) {
+            this._remindWordTF.text = "任务单词：" + this._allWords[index + 1];
+            this._remindExplainTF.text = this._allWordsExplain[index + 1];
             this.removeTouchEvent();
             //增加分数
             this.plusScore(50);
@@ -544,27 +576,28 @@ var Game = (function (_super) {
             right.height = 107;
             this.addChild(right);
             //请求单词读音
-            var request_1 = new egret.HttpRequest();
-            request_1.responseType = egret.HttpResponseType.TEXT;
-            request_1.open("http://www.iciba.com/index.php?a=getWordMean&c=search&word=" + "apple", egret.HttpMethod.GET);
-            request_1.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            request_1.send();
-            request_1.addEventListener(egret.Event.COMPLETE, function () {
-                var result = JSON.parse(request_1.response);
-                if (result["baesInfo"]["symbols"].length > 0) {
-                    var voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"];
-                    var sound_2 = new egret.Sound();
-                    sound_2.addEventListener(egret.Event.COMPLETE, function () {
-                        var channel = sound_2.play(0, 1);
-                    }, this);
-                    sound_2.load(voiceUrl);
-                }
-            }, this);
+            // let request = new egret.HttpRequest();
+            // request.responseType = egret.HttpResponseType.TEXT;
+            // request.open("http://www.iciba.com/index.php?a=getWordMean&c=search&word=" + word, egret.HttpMethod.GET);
+            // request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            // request.send();
+            // request.addEventListener(egret.Event.COMPLETE, function() {
+            // 	let result = JSON.parse(request.response);
+            // 	if(result["baesInfo"]["symbols"].length>0) {
+            // 		let voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"]
+            // 		let sound = new egret.Sound();
+            // 		sound.addEventListener(egret.Event.COMPLETE, function() {
+            // 			let channel:egret.SoundChannel = sound.play(0,1);
+            // 		}, this);
+            // 		sound.load(voiceUrl);
+            // 	}  
+            // }, this);
             //加速时 时间稍微往后 加米数
             var timer = new egret.Timer(500, 1);
             timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
                 //加速动画 300 * 5
                 this.addChild(new GameSpeedMotion(this.stage.stageWidth));
+                this.removeTouchEvent();
                 var add = new egret.Timer(300, 1);
                 add.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
                     //增加本地分数
@@ -596,11 +629,16 @@ var Game = (function (_super) {
             "&isfrom=" + this._info._isfrom;
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
-        request.open(this._info._typosTempjump, egret.HttpMethod.POST);
+        request.open(this._info._typosTempjump + params, egret.HttpMethod.GET);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        request.send(params);
+        request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
-            console.log(JSON.parse(request.response));
+            var result = JSON.parse(request.response);
+            // alert(this._info._typosTempjump + "---"+ params + "---"+result["code"] + "---"+result["msg"]);
+            console.log(result);
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+            alert("post error : " + event);
         }, this);
     };
     //接口-减游戏次数
@@ -610,7 +648,7 @@ var Game = (function (_super) {
             "&timenum=" + this._info._timenum +
             "&activitynum=" + this._info._activitynum +
             "&isfrom=" + this._info._isfrom;
-        alert("减游戏次数接口 - " + this._info._getWord + params);
+        // alert("减游戏次数接口 - "+this._info._getWord + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         request.open(this._info._downnum + params, egret.HttpMethod.GET);
@@ -626,9 +664,17 @@ var Game = (function (_super) {
                 //请求单词
                 this.getWords(1);
             }
-            else {
-                alert("请求出错-" + result["msg"]);
+            else if (result["code"] == 2) {
+                this._overAlert = new Alert(Alert.GamePageShare, "", "", "", 0, this.stage.stageHeight, this.stage.stageWidth);
+                this._overAlert.addEventListener(AlertEvent.Share, this.shareButtonClick, this);
+                this._overAlert.addEventListener(AlertEvent.Cancle, function () {
+                    window.location.reload();
+                }, this);
+                this.addChild(this._overAlert);
             }
+        }, this);
+        request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+            alert("post error : " + event);
         }, this);
     };
     //接口-游戏结束
@@ -640,7 +686,7 @@ var Game = (function (_super) {
             "&timenum=" + this._info._timenum +
             "&activitynum=" + this._info._activitynum +
             "&isfrom=" + this._info._isfrom;
-        alert("游戏结束接口 - " + this._info._gameover + params);
+        // alert("游戏结束接口 - "+this._info._gameover + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
         //将参数拼接到url
@@ -661,6 +707,7 @@ var Game = (function (_super) {
             this.addChild(this._normalAlert);
         }, this);
         request.addEventListener(egret.IOErrorEvent.IO_ERROR, function () {
+            alert("post error : " + event);
         }, this);
     };
     //游戏结束alert-查看排名
@@ -686,8 +733,23 @@ var Game = (function (_super) {
         this._letterTFArray.splice(0, this._letterTFArray.length);
         this._letterImgArray.splice(0, this._letterImgArray.length);
         this._allWords.splice(0, this._allWords.length);
+        this._allWordsExplain.splice(0, this._allWordsExplain.length);
         //重新添加游戏场景
         this.createGameScene();
+    };
+    Game.prototype.shareButtonClick = function () {
+        // this.removeChild(this._overAlert);
+        //分享引导图
+        var _shareGuide = new Bitmap("shareGui2_png");
+        _shareGuide.touchEnabled = true;
+        _shareGuide.x = 0;
+        _shareGuide.y = 0;
+        _shareGuide.width = this.stage.stageWidth;
+        _shareGuide.height = this.stage.stageHeight;
+        _shareGuide.addEventListener(egret.TouchEvent.TOUCH_TAP, function () {
+            this.removeChild(_shareGuide);
+        }, this);
+        this.addChild(_shareGuide);
     };
     return Game;
 }(egret.DisplayObjectContainer));

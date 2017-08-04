@@ -5,6 +5,8 @@ var WxShareData = {
     imgUrl: ""
 };
 var _baseUrl = "//www.beisu100.com";
+// var _baseUrl = "//ceshi.beisu100.com";
+
 var sharelink = window.location.href;
 function share(shareconfig) {
     if (shareconfig.title !== undefined) {
@@ -131,7 +133,7 @@ function getShareData(timenum,activitynum,vuid) {
             share(D.data);
         },
         error: function (data) {
-            alert("wrong- paaaaa$"+timenum+"%"+activitynum+"$"+vuid+"$"+_baseUrl+"$"+sharelink);
+            alert("分享错误");
           
         }
     });

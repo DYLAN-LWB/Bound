@@ -2,16 +2,16 @@
  *弹窗对话框
  */
 class Alert extends egret.Sprite {
-    public static HomePageShare = 1;    //首页分享
-    public static GamePageScore = 2;    //游戏结束
-    public static GamePageShare = 3;    //游戏页面分享
-    private type;//1:首页分享获取次数的对话框；2:游戏结束的重玩的对话框 3:游戏结束获取次数的对话框;4:请先登录弹窗
-    private score;
-    private highScore;
-    private ranking;
-    private descstate;
-    private screenwith;
-    private screenHeight;
+    public static HomePageShare = 1;    //首页没有挑战次数时提示分享
+    public static GamePageScore = 2;    //游戏结束时的提示
+    public static GamePageShare = 3;    //游戏结束点击重玩却没有次数时提示分享
+    private type;   //弹窗类型
+    private score;  //当前分数
+    private highScore;  //最高分
+    private ranking;    //排名
+    private descstate;  //作弊提示
+    private screenwith;     //舞台宽度
+    private screenHeight;   //舞台高度
 
     public constructor(type:number, score:string, highScore:string, ranking:string, descstate:number,screenwith:number,screenHeight:number) {
         super();
@@ -22,14 +22,6 @@ class Alert extends egret.Sprite {
         this.descstate = descstate;
         this.screenwith = screenwith;
         this.screenHeight = screenHeight;
-
-        // if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) { //判断iPhone|iPad|iPod|iOS
-        //     this.screenwith = screenwith;
-        //     this.screenHeight = screenHeight;
-        // } else if (/(Android)/i.test(navigator.userAgent)) {  //判断Android
-        //     this.screenwith = 800;
-        //     this.screenHeight = 1196;
-        // }
         
         this.initView();
     }
@@ -54,17 +46,17 @@ class Alert extends egret.Sprite {
             bg.width = this.screenHeight;
         }
         this.addChild(bg);
+
+
         
-
-
         switch (this.type) {
             case 1:
                 var alertbg = new Bitmap("gamebody_json.prompt_03");
-                this.addChild(alertbg);
                 alertbg.x = 370;
                 alertbg.y = 480;
                 alertbg.anchorOffsetX = alertbg.width / 2;
                 alertbg.anchorOffsetY = alertbg.height / 2;
+                this.addChild(alertbg);
 
                 var dec = new egret.TextField();
                 dec.x = 370;
@@ -81,30 +73,31 @@ class Alert extends egret.Sprite {
                 this.addChild(dec);
 
                 var canclebt = new Bitmap("gamebody_json.btn_03");
-                this.addChild(canclebt);
                 canclebt.x = 230;
                 canclebt.y = 610;
                 canclebt.anchorOffsetX = canclebt.width / 2;
                 canclebt.anchorOffsetY = canclebt.height / 2;
                 canclebt.touchEnabled = true;
                 canclebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.cancleShareGame, this);
+                this.addChild(canclebt);
 
                 var sharebt = new Bitmap("gamebody_json.btn_05");
-                this.addChild(sharebt);
                 sharebt.x = 510;
                 sharebt.y = 610;
                 sharebt.anchorOffsetX = sharebt.width / 2;
                 sharebt.anchorOffsetY = sharebt.height / 2;
                 sharebt.touchEnabled = true;
                 sharebt.addEventListener(egret.TouchEvent.TOUCH_TAP, this.shareGame, this);
+                this.addChild(sharebt);
                 break;
             case 2:
                 var gameover = new Bitmap("gamebody_json.tan");
-                this.addChild(gameover);
                 gameover.x = 370;
                 gameover.y = 480;
                 gameover.anchorOffsetX = gameover.width / 2;
                 gameover.anchorOffsetY = gameover.height / 2;
+                this.addChild(gameover);
+
                 if(this.descstate==1){
                     var text = new egret.TextField();
                     text.x = 140;
@@ -159,22 +152,22 @@ class Alert extends egret.Sprite {
                 this.addChild(ranking);
 
                 var rankings = new Bitmap("gamebody_json.list");
-                this.addChild(rankings);
                 rankings.x = 230;
                 rankings.y = 610;
                 rankings.anchorOffsetX = rankings.width / 2;
                 rankings.anchorOffsetY = rankings.height / 2;
                 rankings.touchEnabled = true;
                 rankings.addEventListener(egret.TouchEvent.TOUCH_TAP, this.gotoRanking, this);
+                this.addChild(rankings);
 
                 var reastgame = new Bitmap("gamebody_json.return");
-                this.addChild(reastgame);
                 reastgame.x = 510;
                 reastgame.y = 610;
                 reastgame.anchorOffsetX = reastgame.width / 2;
                 reastgame.anchorOffsetY = reastgame.height / 2;
                 reastgame.touchEnabled = true;
                 reastgame.addEventListener(egret.TouchEvent.TOUCH_TAP, this.reastGame, this);
+                this.addChild(reastgame);
                 break;
             case 3:
                 var alertbggame = new Bitmap("gamebody_json.prompt_03");
@@ -220,7 +213,6 @@ class Alert extends egret.Sprite {
         }
     }
 
-
     public gotoRanking() {
         let event:AlertEvent = new AlertEvent(AlertEvent.Ranking);
         this.dispatchEvent(event);
@@ -239,12 +231,5 @@ class Alert extends egret.Sprite {
     public cancleShareGame() {
         let event:AlertEvent = new AlertEvent(AlertEvent.Cancle);
         this.dispatchEvent(event);
-    }
-
-    private createBitmapByName(name:string) {
-        var result = new egret.Bitmap();
-        var texture:egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
     }
 }

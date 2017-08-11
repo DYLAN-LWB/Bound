@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "description_json,bg_mp3,countdown_mp3,down_mp3,jump_mp3,rocket_mp3,attention_png,balloon_png,beibei_png,bg_png,bingo_png,black_png,game_bottom_png,gamebody_json,letter_json,shareGui_png,step_png,wordBg_png,yun01_png,yun02_png,yun03_png,yun04_png,start_png,ranking_png,black2_png,shareGui2_png,speed1_png,speed2_png,speed3_png",
+			"keys": "description_json,bg_mp3,countdown_mp3,down_mp3,jump_mp3,rocket_mp3,attention_png,balloon_png,beibei_png,bg_png,bingo_png,black_png,game_bottom_png,gamebody_json,letter_json,shareGui_png,step_png,wordBg_png,yun01_png,yun02_png,yun03_png,yun04_png,start_png,ranking_png,black2_png,shareGui2_png,speed1_png,speed2_png,speed3_png,yy_png",
 			"name": "preload"
 		}
 	],
@@ -152,6 +152,11 @@
 			"name": "speed3_png",
 			"type": "image",
 			"url": "game/speed3.png"
+		},
+		{
+			"name": "yy_png",
+			"type": "image",
+			"url": "yy.png"
 		}
 	]
 }

@@ -56,12 +56,13 @@ var Game = (function (_super) {
         // alert("请求单词接口 - "+this._info._getWord + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
+        console.log(this._info._getWord + params);
         request.open(this._info._getWord + params, egret.HttpMethod.GET);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
-            console.log(JSON.parse(request.response));
             var result = JSON.parse(request.response);
+            console.log(result);
             if (result["code"] == 0) {
                 if (type == 3) {
                     this._wordTF.text = "单词：";
@@ -560,8 +561,6 @@ var Game = (function (_super) {
         }
     };
     Game.prototype.checkWord = function (word, index) {
-        console.log(word);
-        //_allWords
         if (this._wordTF.text.replace("单词：", "").replace(".", "") == word) {
             this._remindWordTF.text = "任务单词：" + this._allWords[index + 1];
             this._remindExplainTF.text = this._allWordsExplain[index + 1];
@@ -575,23 +574,6 @@ var Game = (function (_super) {
             right.width = 210;
             right.height = 107;
             this.addChild(right);
-            //请求单词读音
-            // let request = new egret.HttpRequest();
-            // request.responseType = egret.HttpResponseType.TEXT;
-            // request.open("http://www.iciba.com/index.php?a=getWordMean&c=search&word=" + word, egret.HttpMethod.GET);
-            // request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            // request.send();
-            // request.addEventListener(egret.Event.COMPLETE, function() {
-            // 	let result = JSON.parse(request.response);
-            // 	if(result["baesInfo"]["symbols"].length>0) {
-            // 		let voiceUrl = result["baesInfo"]["symbols"][0]["ph_am_mp3"]
-            // 		let sound = new egret.Sound();
-            // 		sound.addEventListener(egret.Event.COMPLETE, function() {
-            // 			let channel:egret.SoundChannel = sound.play(0,1);
-            // 		}, this);
-            // 		sound.load(voiceUrl);
-            // 	}  
-            // }, this);
             //加速时 时间稍微往后 加米数
             var timer = new egret.Timer(500, 1);
             timer.addEventListener(egret.TimerEvent.TIMER_COMPLETE, function () {
@@ -629,6 +611,7 @@ var Game = (function (_super) {
             "&isfrom=" + this._info._isfrom;
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
+        console.log(this._info._typosTempjump + params);
         request.open(this._info._typosTempjump + params, egret.HttpMethod.GET);
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         request.send();
@@ -655,8 +638,8 @@ var Game = (function (_super) {
         console.log(this._info._downnum + params);
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
-            console.log(JSON.parse(request.response));
             var result = JSON.parse(request.response);
+            console.log(result);
             if (result["code"] == 0) {
                 this._linnum = parseInt(result["data"]["linnum"]);
                 this._rands = result["data"]["rands"].toString();
@@ -689,12 +672,12 @@ var Game = (function (_super) {
         // alert("游戏结束接口 - "+this._info._gameover + params);
         var request = new egret.HttpRequest();
         request.responseType = egret.HttpResponseType.TEXT;
-        //将参数拼接到url
         console.log(this._info._gameover + params);
         request.open(this._info._gameover + params, egret.HttpMethod.GET);
         request.send();
         request.addEventListener(egret.Event.COMPLETE, function () {
             var result = JSON.parse(request.response);
+            console.log(result);
             var highScore = result["data"]["score"];
             if (this._score > parseInt(highScore)) {
                 highScore = this._score;

@@ -39,7 +39,8 @@ var Home = (function (_super) {
         //获取用户相关信息
         this.getUserInfo();
         //首页显示广告
-        $("#guangao").show();
+        //test
+        this.addChild(new Advert(this.stage.stageWidth, this.stage.stageHeight));
     };
     Home.prototype.getUserInfo = function () {
         //test app url
@@ -123,7 +124,7 @@ var Home = (function (_super) {
     Home.prototype.setupSubViews = function () {
         //规则介绍
         var introduce = new egret.TextField();
-        introduce.x = this._isPortraitScreen ? 370 : 480;
+        introduce.x = this._isPortraitScreen ? 370 : 365;
         introduce.y = this._isPortraitScreen ? 600 : 375;
         introduce.lineSpacing = 15;
         introduce.width = 600;

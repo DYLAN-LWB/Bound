@@ -40,12 +40,13 @@ class Home extends egret.DisplayObjectContainer {
         this.getUserInfo();
         
         //首页显示广告
-        $("#guangao").show();
+        //test
+        this.addChild(new Advert(this.stage.stageWidth, this.stage.stageHeight));
     }
      public getUserInfo() {
 
         //test app url
-        this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=5&key=9005e25fa4db0478626e6993e3c38cee&isfrom=1&activitynum=9&timenum=1";
+        // this._pageUrl = "http://ceshi.beisu100.com//actity/90001/index.html?uid=5&key=9005e25fa4db0478626e6993e3c38cee&isfrom=1&activitynum=9&timenum=1";
         // alert("this._pageUrl = " + this._pageUrl);
 
         //解析url参数
@@ -56,20 +57,19 @@ class Home extends egret.DisplayObjectContainer {
         this._info._timenum = params["timenum"].replace(/"/g,"");
         this._info._activitynum = params["activitynum"].replace(/"/g,"");
 
-        //保存信息
-        localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
-        localStorage.setItem("key", JSON.stringify(this._info._key));
-        localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
-        localStorage.setItem("timenum", JSON.stringify(this._info._timenum));
-        localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
-
-        //app在排行榜点击重玩 会重新加载首页, 没有id key
-        if(this._info._key.length < 8) {
+        if(this._info._key.length < 8) { //app在排行榜点击重玩 会重新加载首页, 没有id key
             this._info._vuid = localStorage.getItem("vuid").replace(/"/g,"");
             this._info._key = localStorage.getItem("key").replace(/"/g,"");
 		    this._info._isfrom = localStorage.getItem("isfrom").replace(/"/g,"");
 		    this._info._timenum = localStorage.getItem("timenum").replace(/"/g,"");
 		    this._info._activitynum = localStorage.getItem("activitynum").replace(/"/g,"");
+        } else {
+            //保存信息
+            localStorage.setItem("vuid", JSON.stringify(this._info._vuid));
+            localStorage.setItem("key", JSON.stringify(this._info._key));
+            localStorage.setItem("isfrom", JSON.stringify(this._info._isfrom));
+            localStorage.setItem("timenum", JSON.stringify(this._info._timenum));
+            localStorage.setItem("activitynum", JSON.stringify(this._info._activitynum));
         }
 
         if (this._info._key == null) {
@@ -122,7 +122,7 @@ class Home extends egret.DisplayObjectContainer {
     private setupOverButton() {
         this.removeChild(this._startButton);
         this._overButton = new Bitmap("gamebody_json.ending");
-        this._overButton.x = this._isPortraitScreen ? 180 : 780;
+        this._overButton.x = this._isPortraitScreen ? 180 : 700;
         this._overButton.y = this._isPortraitScreen ? 820 : 570;
         this._overButton.rotation = this._isPortraitScreen ? 0 : -90;
         this._overButton.touchEnabled = true;
@@ -130,13 +130,18 @@ class Home extends egret.DisplayObjectContainer {
             alert("活动已结束");
         }, this);
         this.addChild(this._overButton);
+
+        if (parseInt(this._info._isfrom) == 1) {
+            this._overButton.x = this._isPortraitScreen ? 180 : 660;
+            this._overButton.y = this._isPortraitScreen ? 760 : 570;
+        }
     }
 
     private setupSubViews() {
 
         //规则介绍
         var introduce = new egret.TextField();
-        introduce.x = this._isPortraitScreen ? 370 : 480;
+        introduce.x = this._isPortraitScreen ? 370 : 365;
         introduce.y = this._isPortraitScreen ? 600 : 375;
         introduce.lineSpacing = 15;
         introduce.width = 600;
